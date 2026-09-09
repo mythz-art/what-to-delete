@@ -1,0 +1,40 @@
+[package]
+name = "what-to-delete"
+version = "2.1.0"
+edition = "2021"
+description = "What to Delete? — Windows disk cleanup, redesigned (v2.1: FTP, tunnels, file manager, terminal)"
+build = "build.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+windows-sys = { version = "0.59", features = [
+    "Win32_Storage_FileSystem",
+    "Win32_UI_Shell",
+    "Win32_Foundation",
+    "Win32_System_SystemInformation",
+    "Win32_System_Registry",
+    "Win32_System_Threading",
+    "Win32_System_Console",
+] }
+fs2 = "0.4"
+aes-gcm = "0.10"
+sha2 = "0.10"
+pbkdf2 = "0.12"
+hmac = "0.12"
+rand = "0.8"
+rayon = "1.10"
+
+# Static-link WebView2Loader (single-file exe) instead of shipping WebView2Loader.dll
+[patch.crates-io]
+webview2-com-sys = { path = "third_party/webview2-com-sys" }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+opt-level = "s"
+strip = true

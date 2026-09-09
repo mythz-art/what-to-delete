@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --animate-pulse-soft: pulse-soft 2.8s ease-in-out infinite;
+  --animate-float: float 8s ease-in-out infinite;
+  --animate-spin-slow: spin 14s linear infinite;
+  --animate-shimmer: shimmer 2.4s linear infinite;
+  --animate-scanline: scanline 2.2s ease-in-out infinite;
+  --animate-breathe: breathe 3.6s ease-in-out infinite;
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes scanline {
+  0% { top: 2%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 98%; opacity: 0; }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.06); opacity: 0.9; }
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased overflow-hidden;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  }
+  ::selection {
+    @apply bg-indigo-400/30 text-white;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-white/10;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-white/20;
+  }
+  input, textarea, select, button {
+    font-family: inherit;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply rounded-2xl border border-white/[0.07] bg-white/[0.03] backdrop-blur-xl;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+  .glass-hover {
+    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.05];
+  }
+  .text-gradient {
+    @apply bg-gradient-to-r from-indigo-300 via-sky-300 to-cyan-300 bg-clip-text text-transparent;
+  }
+  .btn-gradient {
+    @apply bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:brightness-110 hover:shadow-indigo-500/40 active:scale-[0.98];
+  }
+  .shimmer-bar {
+    background-image: linear-gradient(110deg, transparent 25%, rgba(129, 140, 248, 0.16) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+  .dot-grid {
+    background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+    background-size: 26px 26px;
+  }
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/40;
+  }
+}
+
+/* ============================== v2.1: terminal + responsive ============================== */
+
+@layer components {
+  /* CRT scanlines for the hacker terminal */
+  .crt-scanlines {
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.16) 0px,
+      rgba(0, 0, 0, 0.16) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: multiply;
+  }
+
+  /* blinking terminal cursor */
+  .cursor-blink::after {
+    content: "▋";
+    margin-left: 2px;
+    color: #34d399;
+    animation: wtd-blink 0.53s steps(1) infinite;
+  }
+
+  @keyframes wtd-blink {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* slim scrollbars for explorer / terminal lists */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.22);
+    border-radius: 8px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.38);
+  }
+
+  /* subtle CRT flicker on the terminal container */
+  .crt-flicker {
+    animation: wtd-flicker 6s infinite;
+  }
+  @keyframes wtd-flicker {
+    0%, 96%, 100% {
+      opacity: 1;
+    }
+    97% {
+      opacity: 0.92;
+    }
+    98% {
+      opacity: 1;
+    }
+    99% {
+      opacity: 0.95;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .crt-scanlines {
+    background: none;
+  }
+}
+
+/* respects reduced motion for the heavy effects */
+@media (prefers-reduced-motion: reduce) {
+  .crt-flicker,
+  .cursor-blink::after {
+    animation: none;
+  }
+}
