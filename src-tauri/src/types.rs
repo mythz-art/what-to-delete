@@ -224,17 +224,89 @@ pub struct TaskInfo {
     pub summary: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstalledApp {
+    pub name: String,
+    pub version: String,
+    pub publisher: String,
+    pub bytes: u64,
+    pub install_location: String,
+    pub uninstall_string: String,
+}
+
+/* ============================== v2.3 power tools ============================== */
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FtpStats {
     pub running: bool,
     pub port: u16,
+    /// LAN host address clients should connect to
+    #[serde(default)]
+    pub host: String,
     pub root: String,
     pub anonymous: bool,
     pub sessions_total: u64,
     pub sessions_active: u64,
     pub bytes_out: u64,
     pub bytes_in: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HttpStats {
+    pub running: bool,
+    pub port: u16,
+    pub url: String,
+    pub peers_served: u64,
+    pub downloads: u64,
+    pub bytes_out: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderSize {
+    pub path: String,
+    pub bytes: u64,
+    pub files: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PathAuditEntry {
+    pub path: String,
+    pub exists: bool,
+    pub duplicate: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PathAuditReport {
+    pub total_count: u32,
+    pub missing_count: u32,
+    pub duplicate_count: u32,
+    pub entries: Vec<PathAuditEntry>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HashResult {
+    pub algo: String,
+    pub hex: String,
+    pub bytes: u64,
+    pub ms: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StartupEntry {
+    /// stable removal handle: "<location>|<name-or-path>"
+    pub id: String,
+    pub name: String,
+    pub command: String,
+    pub location: String,
+    pub removable: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -306,15 +378,4 @@ pub struct FinderItem {
 pub struct RecycleBinStats {
     pub count: u64,
     pub bytes: u64,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InstalledApp {
-    pub name: String,
-    pub version: String,
-    pub publisher: String,
-    pub bytes: u64,
-    pub install_location: String,
-    pub uninstall_string: String,
 }

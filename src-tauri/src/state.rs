@@ -5,7 +5,8 @@ use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::types::{
-    AppSettings, FtpStats, JunkItem, LogEntry, TaskInfo, TunnelStatus, TransferItem, VaultItem,
+    AppSettings, FtpStats, HttpStats, JunkItem, LogEntry, TaskInfo, TunnelStatus, TransferItem,
+    VaultItem,
 };
 
 pub struct AppState {
@@ -27,6 +28,9 @@ pub struct AppState {
     /// shared handle to the live FTP listener so ftp_stop can force-close it
     pub ftp_listener: Mutex<Option<Arc<TcpListener>>>,
     pub http_port: Mutex<Option<u16>>,
+    /* ---------------- v2.3 ---------------- */
+    /// live HTTP share server stats (peers, downloads, bytes out)
+    pub http_stats: Mutex<HttpStats>,
     /* ---------------- v2.1 ---------------- */
     /// global log ring buffer feeding the hacker terminal
     pub logs: Mutex<Vec<LogEntry>>,
@@ -114,12 +118,21 @@ impl AppState {
             ftp: Mutex::new(FtpStats {
                 running: false,
                 port: 0,
+                host: String::new(),
                 root: String::new(),
                 anonymous: true,
                 sessions_total: 0,
                 sessions_active: 0,
                 bytes_out: 0,
                 bytes_in: 0,
+            }),
+            http_stats: Mutex::new(HttpStats {
+                running: false,
+                port: 0,
+                url: String::new(),
+                peers_served: 0,
+                downloads: 0,
+                bytes_out: 0,
             }),
             tunnel: Mutex::new(TunnelStatus {
                 method: String::new(),

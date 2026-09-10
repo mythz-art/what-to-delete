@@ -18,7 +18,7 @@ import { useApp } from "@/lib/store";
 import { formatBytes, formatCount, percent, timeAgo } from "@/lib/format";
 import { AnimatedNumber, Badge, GaugeBar, GlassCard, SectionHeader, StatRing } from "@/components/ui";
 import { PageShell } from "@/components/chrome";
-import type { DriveInfo, JunkCategory } from "@/lib/types";
+import type { DriveInfo } from "@/lib/types";
 
 const DRIVE_ACCENT: Record<DriveInfo["kind"], string> = {
   nvme: "from-indigo-500/80 to-cyan-400/80",
@@ -118,11 +118,11 @@ function StatTile({
   );
 }
 
-const INSIGHTS: { title: string; bytes: number; category: JunkCategory["id"]; desc: string }[] = [
-  { title: "Windows Update cache", bytes: 3.3 * 1024 ** 3, category: "updates", desc: "38 leftover update packages" },
-  { title: "Recycle Bin", bytes: 6.1 * 1024 ** 3, category: "recycle", desc: "3 large items you deleted" },
-  { title: "Browser caches", bytes: 3.1 * 1024 ** 3, category: "browser", desc: "Chrome, Edge and Firefox" },
-  { title: "Crash dumps & logs", bytes: 1.2 * 1024 ** 3, category: "logs", desc: "9 dumps from failed apps" },
+const INSIGHTS: { title: string; desc: string; page: "cleanup" | "files" | "duplicates" | "tools"; ctx?: Record<string, unknown> }[] = [
+  { title: "Run a junk sweep", desc: "6 categories — temp files, caches, update leftovers, logs", page: "cleanup" },
+  { title: "Hunt duplicate content", desc: "SHA-256 verified — safe to remove the copies you pick", page: "duplicates" },
+  { title: "Rank folders by size", desc: "The Folder Size Analyzer shows exactly what eats the disk", page: "tools" },
+  { title: "Find big & forgotten files", desc: "Files over 100 MB and untouched downloads, per drive", page: "files", ctx: { filesTab: "large" } },
 ];
 
 export function DashboardPage() {
@@ -131,6 +131,13 @@ export function DashboardPage() {
   const reclaimable = status?.reclaimableBytes ?? 0;
   const ram = status?.ram;
   const ramPct = ram && ram.totalBytes > 0 ? percent(ram.usedBytes, ram.totalBytes) : 0;
+
+  // v2.3: REAL computed values — every previously hardcoded number removed
+  const drives = status?.drives ?? [];
+  const totalFree = drives.reduce((s, d) => s + (d.totalBytes - d.usedBytes), 0);
+  const totalCapacity = drives.reduce((s, d) => s + d.totalBytes, 0);
+  const fullest = [...drives].sort((a, b) => percent(b.usedBytes, b.totalBytes) - percent(a.usedBytes, a.totalBytes))[0];
+  const fullestPct = fullest ? percent(fullest.usedBytes, fullest.totalBytes) : 0;
 
   const openDrive = (letter: string) =>
     navigate("files", { explorerPath: `${letter}\\`, filesTab: "explorer" });
@@ -191,15 +198,15 @@ export function DashboardPage() {
             label="Reclaimable junk"
             value={reclaimable}
             format={(n) => formatBytes(n)}
-            hint="Temp files, caches, update leftovers"
+            hint={"Temp files, caches, update leftovers"}
             delay={0.05}
           />
           <StatTile
             icon={Files}
-            label="Duplicate waste"
-            value={5.2 * 1024 ** 3}
+            label="Total free space"
+            value={totalFree}
             format={(n) => formatBytes(n)}
-            hint="6 groups of identical files"
+            hint={totalCapacity > 0 ? `across ${drives.length} volumes · ${formatBytes(totalCapacity, 0)} total` : "across your volumes"}
             delay={0.12}
             tone="cyan"
           />
@@ -214,10 +221,10 @@ export function DashboardPage() {
           />
           <StatTile
             icon={ArrowUpRight}
-            label="Largest single file"
-            value={18.2 * 1024 ** 3}
-            format={(n) => formatBytes(n)}
-            hint="E:\\VMs\\win11-dev.vhdx — untouched 41 days"
+            label={fullest ? `Fullest drive — ${fullest.letter}` : "Drive usage"}
+            value={fullestPct}
+            format={(n) => `${Math.round(n)}%`}
+            hint={fullest ? `${formatBytes(fullest.totalBytes - fullest.usedBytes)} free of ${formatBytes(fullest.totalBytes, 0)}` : "open a drive below"}
             delay={0.26}
             tone="cyan"
           />
@@ -265,7 +272,7 @@ export function DashboardPage() {
 
       {/* insights */}
       <div className="mt-8">
-        <SectionHeader title="Insights" subtitle="What is eating your space right now" />
+        <SectionHeader title="Quick wins" subtitle="Highest-impact actions for this machine" />
         <GlassCard delay={0.1} className="divide-y divide-[var(--wtd-edge)]">
           {INSIGHTS.map((ins, i) => (
             <motion.button
@@ -273,7 +280,7 @@ export function DashboardPage() {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 + i * 0.06, duration: 0.35 }}
-              onClick={() => navigate("cleanup", { category: ins.category })}
+              onClick={() => navigate(ins.page, ins.ctx)}
               className="group flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[var(--wtd-card-2)]"
             >
               <div className="grid size-9 shrink-0 place-items-center rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3 group-hover:text-[var(--wtd-accent-ink)]">
@@ -283,7 +290,6 @@ export function DashboardPage() {
                 <div className="text-sm font-medium text-ink-2">{ins.title}</div>
                 <div className="text-xs text-ink-3">{ins.desc}</div>
               </div>
-              <span className="text-sm font-semibold tabular-nums text-ink-2">{formatBytes(ins.bytes)}</span>
               <ChevronRight className="size-4 text-ink-4 transition-transform group-hover:translate-x-1 group-hover:text-ink-2" />
             </motion.button>
           ))}

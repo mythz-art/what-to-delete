@@ -6,16 +6,21 @@ import type {
   FileEntry,
   FileOpResult,
   FinderItem,
+  FolderSize,
   FtpStats,
+  HashResult,
+  HttpStats,
   InstalledApp,
   ItemProps,
   JunkCategory,
   JunkItem,
   LogEntry,
+  PathAuditReport,
   RecycleBinStats,
   ScanProgress,
   ScanReport,
   ShareMode,
+  StartupEntry,
   SystemStatus,
   TaskInfo,
   ToolInfo,
@@ -106,6 +111,7 @@ export class MockEngine {
   // v2.1 state
   private logs: LogEntry[] = [];
   private httpRunning = false;
+  private httpPort = 8080;
   private ftpStats: FtpStats = { ...MOCK_FTP_STATS };
   private tunnel: TunnelStatus = { ...MOCK_TUNNEL };
   private tunnelTimer: ReturnType<typeof setTimeout> | null = null;
@@ -419,11 +425,24 @@ export class MockEngine {
     this.log("dim", "NET", "HTTP server stopped");
   }
 
+  async shareHttpStatus(): Promise<HttpStats> {
+    await sleep(60);
+    return {
+      running: this.httpRunning,
+      port: this.httpRunning ? this.httpPort ?? 8080 : 0,
+      url: this.httpRunning ? `http://192.168.1.42:${this.httpPort ?? 8080}` : "",
+      peersServed: 4,
+      downloads: 17,
+      bytesOut: 12.6 * 1024 ** 3,
+    };
+  }
+
   async shareFtpStart(cfg: { port: number; root?: string; anonymous?: boolean }): Promise<{ port: number; host: string }> {
     await sleep(700);
     this.ftpStats = {
       running: true,
       port: cfg.port,
+      host: "192.168.1.42",
       root: cfg.root ?? "C:\\Users\\Sora\\AppData\\Roaming\\WhatToDelete\\shared",
       anonymous: cfg.anonymous ?? true,
       sessionsTotal: 0,
@@ -649,6 +668,87 @@ export class MockEngine {
     await sleep(1100);
     this.log("ok", "SYS", `registry scan done — ${INSTALLED_APPS.length} apps`);
     return INSTALLED_APPS;
+  }
+
+  // ---------- v2.3: dev & power tools ----------
+
+  async folderSizes(): Promise<FolderSize[]> {
+    await sleep(1400);
+    const sizes = [
+      { path: "C:\\Users\\Sora\\Videos", bytes: 82.4 * 1024 ** 3, files: 214 },
+      { path: "C:\\Users\\Sora\\Downloads", bytes: 41.2 * 1024 ** 3, files: 1180 },
+      { path: "C:\\Users\\Sora\\Documents", bytes: 12.8 * 1024 ** 3, files: 4210 },
+      { path: "C:\\Users\\Sora\\Pictures", bytes: 9.6 * 1024 ** 3, files: 3320 },
+      { path: "C:\\Users\\Sora\\Music", bytes: 6.2 * 1024 ** 3, files: 890 },
+    ];
+    this.log("ok", "TOOL", `folder sizes measured — top: ${sizes[0].path}`);
+    return sizes;
+  }
+
+  async pathAudit(): Promise<PathAuditReport> {
+    await sleep(700);
+    const entries = [
+      { path: "C:\\Windows\\system32", exists: true, duplicate: false },
+      { path: "C:\\Program Files\nodejs", exists: true, duplicate: false },
+      { path: "C:\\tools\\cargo\\bin", exists: true, duplicate: true },
+      { path: "C:\\tools\\cargo\\bin\\", exists: true, duplicate: true },
+      { path: "D:\\gone\\sdk", exists: false, duplicate: false },
+    ];
+    return {
+      totalCount: entries.length,
+      missingCount: entries.filter((e) => !e.exists).length,
+      duplicateCount: entries.filter((e) => e.duplicate).length,
+      entries,
+    };
+  }
+
+  async dnsFlush(): Promise<string> {
+    await sleep(900);
+    this.log("ok", "NET", "DNS resolver cache flushed");
+    return "Successfully flushed the DNS Resolver Cache.";
+  }
+
+  async hashFile(path: string): Promise<HashResult> {
+    await sleep(1200);
+    let h = 0xcbf29ce484222325n;
+    for (const b of path.split("").map((c) => c.charCodeAt(0))) {
+      h ^= BigInt(b);
+      h = BigInt.asUintN(64, h * 0x100000001b3n);
+    }
+    const hex = h.toString(16).padStart(64, "0");
+    return { algo: "SHA-256", hex, bytes: 1024 * 4096, ms: 120 };
+  }
+
+  async openTerminal(path: string): Promise<boolean> {
+    await sleep(200);
+    this.log("dim", "SYS", `open terminal at: ${path}`);
+    return true;
+  }
+
+  async shredPaths(paths: string[]): Promise<FileOpResult> {
+    await sleep(1500);
+    this.log("ok", "TOOL", `shredded ${paths.length} target(s) — 3-pass overwrite`);
+    return { ok: true, affected: paths.length, freedBytes: 64 * 1024 * 1024 };
+  }
+
+  async deleteOnReboot(paths: string[]): Promise<FileOpResult> {
+    await sleep(600);
+    this.log("ok", "FS", `${paths.length} file(s) scheduled for deletion on next reboot`);
+    return { ok: true, affected: paths.length, freedBytes: 0 };
+  }
+
+  async startupList(): Promise<StartupEntry[]> {
+    await sleep(800);
+    return [
+      { id: "hkcu-run|Run|Steam", name: "Steam", command: "\"C:\\Program Files (x86)\\Steam\\steam.exe\" -silent", location: "Registry · Run · HKCU", removable: true },
+      { id: "hkcu-run|Run|Discord", name: "Discord", command: "C:\\Users\\Sora\\AppData\\Local\\Discord\\Update.exe --processStart Discord", location: "Registry · Run · HKCU", removable: true },
+      { id: "hklm-run|Run|OneDrive", name: "OneDrive", command: "C:\\Program Files\\Microsoft OneDrive\\OneDrive.exe /background", location: "Registry · Run · HKLM", removable: false },
+    ];
+  }
+
+  async startupRemove(id: string): Promise<void> {
+    await sleep(500);
+    this.log("ok", "SYS", `startup entry removed: ${id.split("|").pop() ?? id}`);
   }
 
   // ---------- window controls (no-ops in the browser) ----------

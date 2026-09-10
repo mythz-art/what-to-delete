@@ -70,9 +70,11 @@ pub fn ftp_start(app: &tauri::AppHandle, state: &AppState, cfg: FtpConfig) -> Re
     *state.ftp_listener.lock().unwrap() = Some(listener.clone());
 
     {
+        let lan_ip = local_ip().unwrap_or_else(|| "127.0.0.1".into());
         let mut f = state.ftp.lock().unwrap();
         f.running = true;
         f.port = port;
+        f.host = lan_ip;
         f.root = cfg.root.to_string_lossy().to_string();
         f.anonymous = cfg.anonymous;
         f.sessions_total = 0;

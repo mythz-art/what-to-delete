@@ -14,6 +14,11 @@ pub fn list_tools() -> Vec<ToolInfo> {
         ToolInfo { id: "crash-dumps".into(), name: "Crash Dumps".into(), description: "Remove memory dumps from failed apps".into() },
         ToolInfo { id: "app-sizes".into(), name: "App Disk Usage".into(), description: "See which installed apps eat the most space".into() },
         ToolInfo { id: "startup-audit".into(), name: "Startup Audit".into(), description: "Review what slows down your boot time".into() },
+        // v2.3 — power-user pack
+        ToolInfo { id: "folder-sizes".into(), name: "Folder Size Analyzer".into(), description: "Rank every top-level folder by real size — find what eats the disk".into() },
+        ToolInfo { id: "path-audit".into(), name: "PATH Auditor".into(), description: "Inspect your PATH: dead directories, duplicates, total length".into() },
+        ToolInfo { id: "autoruns".into(), name: "Startup Manager".into(), description: "Live autorun entries from the registry and Startup folders — remove them".into() },
+        ToolInfo { id: "dns-flush".into(), name: "Flush DNS Cache".into(), description: "One-click ipconfig /flushdns — fixes stale lookups instantly".into() },
     ]
 }
 
@@ -199,21 +204,45 @@ pub fn run_tool(id: &str) -> ToolResult {
             stat.note = format!("{} apps measured", stat.found);
         }
         "startup-audit" => {
-            for root in [
-                r"%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup",
-                r"%ProgramData%\Microsoft\Windows\Start Menu\Programs\Startup",
-            ] {
-                let expanded = root.replace("%APPDATA%", &std::env::var("APPDATA").unwrap_or_default())
-                    .replace("%ProgramData%", &std::env::var("ProgramData").unwrap_or_default());
-                let p = PathBuf::from(expanded);
-                if let Ok(rd) = fs::read_dir(&p) {
-                    for entry in rd.flatten() {
-                        stat.found += 1;
-                        let _ = entry;
-                    }
+            // v2.3: real autorun count from registry + startup folders
+            let entries = crate::devtools::startup_list();
+            stat.found = entries.len() as u64;
+            stat.note = format!("{} startup entries detected", entries.len());
+        }
+        "folder-sizes" => {
+            // rich panel on the Tools page calls folder_sizes directly;
+            // this sweep returns a quick profile summary
+            let sizes = crate::devtools::folder_sizes(None, 10);
+            stat.found = sizes.len() as u64;
+            stat.bytes = sizes.iter().map(|s| s.bytes).sum();
+            if let Some(top) = sizes.first() {
+                stat.note = format!("biggest: {} ({})", top.path, crate::tasks::fmt_bytes(top.bytes));
+            } else {
+                stat.note = "no folders measured".into();
+            }
+        }
+        "path-audit" => {
+            let report = crate::devtools::path_audit();
+            stat.found = report.entries.len() as u64;
+            stat.note = format!(
+                "{} entries · {} missing · {} duplicated",
+                report.total_count, report.missing_count, report.duplicate_count
+            );
+        }
+        "autoruns" => {
+            let entries = crate::devtools::startup_list();
+            stat.found = entries.len() as u64;
+            stat.note = format!("{} autorun entries — manage them below", entries.len());
+        }
+        "dns-flush" => {
+            match crate::devtools::dns_flush() {
+                Ok(msg) => {
+                    stat.note = msg;
+                }
+                Err(e) => {
+                    stat.note = e;
                 }
             }
-            stat.note = format!("{} startup entries detected", stat.found);
         }
         _ => {
             stat.note = "Unknown tool".into();

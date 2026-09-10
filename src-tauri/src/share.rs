@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tauri::{Emitter, Manager};
 
 use crate::state::{now_ms, share_dir, AppState};
-use crate::types::TransferItem;
+use crate::types::{HttpStats, TransferItem};
 
 static HTTP_RUNNING: AtomicBool = AtomicBool::new(false);
 
@@ -18,6 +18,19 @@ pub fn http_start(app: &tauri::AppHandle, state: &AppState, port: u16) -> Result
     let listener = TcpListener::bind(("0.0.0.0", port)).map_err(|e| e.to_string())?;
     *state.http_port.lock().unwrap() = Some(port);
     HTTP_RUNNING.store(true, Ordering::Relaxed);
+
+    // report the LAN address + reset stats
+    let lan_ip = local_ip().unwrap_or_else(|| "127.0.0.1".into());
+    let url = format!("http://{}:{}", lan_ip, port);
+    {
+        let mut hs = state.http_stats.lock().unwrap();
+        hs.running = true;
+        hs.port = port;
+        hs.url = url.clone();
+        hs.peers_served = 0;
+        hs.downloads = 0;
+        hs.bytes_out = 0;
+    }
 
     let app2 = app.clone();
     std::thread::spawn(move || {
@@ -36,11 +49,27 @@ pub fn http_start(app: &tauri::AppHandle, state: &AppState, port: u16) -> Result
         }
     });
 
-    // report the LAN address
-    let lan_ip = local_ip().unwrap_or_else(|| "127.0.0.1".into());
-    let url = format!("http://{}:{}", lan_ip, port);
     logs::info(app, "NET", format!("HTTP server live on {url}"));
     Ok(url)
+}
+
+pub fn http_stop(state: &AppState) {
+    HTTP_RUNNING.store(false, Ordering::Relaxed);
+    *state.http_port.lock().unwrap() = None;
+    let mut hs = state.http_stats.lock().unwrap();
+    hs.running = false;
+}
+
+/// v2.3: live snapshot for the Share page (real counters, no mock data).
+pub fn http_status(state: &AppState) -> HttpStats {
+    state.http_stats.lock().unwrap().clone()
+}
+
+fn bump_http(state: &AppState, downloads: u64, bytes: u64) {
+    let mut hs = state.http_stats.lock().unwrap();
+    hs.peers_served += 1;
+    hs.downloads += downloads;
+    hs.bytes_out += bytes;
 }
 
 fn handle_http(app: &tauri::AppHandle, state: &AppState, stream: &mut TcpStream, peer: String) {
@@ -90,6 +119,7 @@ fn handle_http(app: &tauri::AppHandle, state: &AppState, stream: &mut TcpStream,
             body
         );
         let _ = stream.write_all(resp.as_bytes());
+        bump_http(state, 0, 0);
     } else if let Some(name) = target.strip_prefix("/f/") {
         let name = name.replace("..", "").replace('/', "");
         let path = shared.join(&name);
@@ -123,6 +153,7 @@ fn handle_http(app: &tauri::AppHandle, state: &AppState, stream: &mut TcpStream,
                     }
                     update_transfer(app, state, &tid, sent, 0, true);
                     logs::ok(app, "NET", format!("served {name} ({sent} bytes) to {peer}"));
+                    bump_http(state, 1, sent);
                 }
             }
         } else {
@@ -135,11 +166,6 @@ fn handle_http(app: &tauri::AppHandle, state: &AppState, stream: &mut TcpStream,
             let _ = stream.write_all(resp.as_bytes());
         }
     }
-}
-
-pub fn http_stop(state: &AppState) {
-    HTTP_RUNNING.store(false, Ordering::Relaxed);
-    *state.http_port.lock().unwrap() = None;
 }
 
 pub fn local_ip() -> Option<String> {

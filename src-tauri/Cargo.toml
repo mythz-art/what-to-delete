@@ -1,8 +1,8 @@
 [package]
 name = "what-to-delete"
-version = "2.2.0"
+version = "2.3.0"
 edition = "2021"
-description = "What to Delete? — Windows disk cleanup, redesigned (v2.2: multi-task terminal, per-task logs, FTP fix, premium redesign)"
+description = "What to Delete? — Windows disk cleanup (v2.3: zero-freeze engine, developer & power tools)"
 build = "build.rs"
 
 [build-dependencies]

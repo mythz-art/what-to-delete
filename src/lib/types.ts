@@ -171,12 +171,22 @@ export interface TaskInfo {
 export interface FtpStats {
   running: boolean;
   port: number;
+  host?: string;
   root: string;
   anonymous: boolean;
   sessionsTotal: number;
   sessionsActive: number;
   bytesOut: number;
   bytesIn: number;
+}
+
+export interface HttpStats {
+  running: boolean;
+  port: number;
+  url: string;
+  peersServed: number;
+  downloads: number;
+  bytesOut: number;
 }
 
 export interface TunnelStatus {
@@ -243,4 +253,40 @@ export interface InstalledApp {
   bytes: number;
   installLocation: string;
   uninstallString: string;
+}
+
+/* ============================== v2.3 power tools ============================== */
+
+export interface FolderSize {
+  path: string;
+  bytes: number;
+  files: number;
+}
+
+export interface PathAuditEntry {
+  path: string;
+  exists: boolean;
+  duplicate: boolean;
+}
+
+export interface PathAuditReport {
+  totalCount: number;
+  missingCount: number;
+  duplicateCount: number;
+  entries: PathAuditEntry[];
+}
+
+export interface HashResult {
+  algo: string;
+  hex: string;
+  bytes: number;
+  ms: number;
+}
+
+export interface StartupEntry {
+  id: string;
+  name: string;
+  command: string;
+  location: string;
+  removable: boolean;
 }

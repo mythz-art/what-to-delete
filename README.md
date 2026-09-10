@@ -3,7 +3,7 @@
 **Windows disk cleanup app — rebuilt as a single portable EXE.**
 Tauri 2 · React 19 · TypeScript · Tailwind CSS 4 · Rust
 
-[![Release](https://img.shields.io/badge/release-v2.2.0-6366f1?style=flat-square)](../../releases) [![License](https://img.shields.io/badge/license-MIT-22d3ee?style=flat-square)](#license) [![Windows](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-0078D6?style=flat-square)](#requirements)
+[![Release](https://img.shields.io/badge/release-v2.3.0-6366f1?style=flat-square)](../../releases) [![License](https://img.shields.io/badge/license-MIT-22d3ee?style=flat-square)](#license) [![Windows](https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-0078D6?style=flat-square)](#requirements)
 
 ## ✨ Features
 
@@ -13,12 +13,13 @@ Tauri 2 · React 19 · TypeScript · Tailwind CSS 4 · Rust
 | 🔍 **Duplicates** | Content-aware finder: size → multi-sample partial hash → full SHA-256, with session hash caching |
 | 📁 **File Manager** | Browse every drive: cut/copy/paste, rename, delete-to-recycle-bin, search, properties, grid & list views, breadcrumbs, windowed rendering for huge folders |
 | 🕵️ **Finders** | Large files · old files · empty folders · installed apps (registry) · recycle-bin manager |
-| 🌐 **Share** | LAN **HTTP server** + full **FTP server** (Explorer/FileZilla compatible) with live transfer queue and instant start/stop |
+| 🌐 **Share** | LAN **HTTP server** + full **FTP server** (Explorer/FileZilla compatible) with live transfer queue, real server stats and instant start/stop |
 | 🚀 **Publish Online** | Free public tunnels: localhost.run (built-in ssh) or Cloudflare quick tunnel — share files with anyone, anywhere |
-| 🖥 **Multitask Terminal** | Detached hacker-terminal window with **one tab per task** (Windows-Terminal style): every scan, hunt, wipe, tool run and transfer streams its own private real-time log with process detail + result summary — matrix rain, CRT scanlines, pause/clear/copy, fullscreen |
-| 🎨 **Light + Dark Themes** | Premium token-based design system — light by default, one-click dark, new gradient shield logo |
-| 📊 **Dashboard** | Health ring, RAM monitor, per-drive filesystem info, quick actions, drive cards open the file manager |
-| 🔐 **Vault** | AES-256-GCM encrypted file vault (PBKDF2 120k) — plus the classic feedback easter egg |
+| 🖥 **Multitask Terminal** | Detached hacker-terminal window with **one tab per task** (Windows-Terminal style): every scan, hunt, wipe, tool run and transfer streams its own private real-time log — matrix rain, CRT scanlines, pause/clear/copy, fullscreen |
+| 🦾 **Power Tools** | Folder Size Analyzer · PATH Auditor · real Startup Manager (registry + folders, delete entries) · DNS flush · SHA-256 checksummer · open-terminal-here · 3-pass secure shred · delete-on-reboot for locked files |
+| ⚡ **Zero-Freeze Engine** | v2.3: every disk-heavy command runs off the main thread (async + blocking pool) — the UI never locks up while scanning, copying or hashing |
+| 🎨 **Light + Dark Themes** | Premium token-based design system — light by default, one-click dark, gradient shield logo |
+| 📊 **Dashboard** | Health ring, RAM monitor, real per-drive stats, quick actions, drive cards open the file manager — no fake numbers |
 | 🦾 **Responsive** | Auto-collapsing sidebar, adaptive grids — comfortable from 880px to ultrawide |
 
 ## 📦 Download
@@ -58,7 +59,7 @@ cargo build --release --target x86_64-pc-windows-gnu
 ```
 wtd-tauri/
 ├── src/                    # React frontend (pages, components, mock engine)
-│   ├── pages/              # Dashboard, Cleanup, Duplicates, Files, Share, Tools, Settings, Vault, About
+│   ├── pages/              # Dashboard, Cleanup, Duplicates, Files, Share, Tools, Settings, About
 │   ├── components/         # chrome (sidebar/titlebar), ui kit, FileExplorer, TerminalConsole, FeedbackModal
 │   └── lib/                # api adapter, store, types, mock engine
 └── src-tauri/
@@ -67,13 +68,13 @@ wtd-tauri/
     │   ├── dedup.rs        # content-aware duplicate finder
     │   ├── files.rs        # file manager operations
     │   ├── finders.rs      # large/old/empty/apps/recycle
+    │   ├── devtools.rs     # v2.3 power tools (folder sizes, PATH audit, autoruns, shred, hash)
     │   ├── ftp.rs          # complete FTP server (PASV, RETR/STOR, MKD/RMD/DELE) with force-close stop
-    │   ├── share.rs        # HTTP server + transfer queue
+    │   ├── share.rs        # HTTP server + transfer queue + live stats
     │   ├── tunnel.rs       # localhost.run / cloudflared public tunnels
     │   ├── logs.rs         # global + per-task log ring buffers (terminal feed)
     │   ├── tasks.rs        # task registry driving the multi-tab terminal
     │   ├── sys.rs          # drives, RAM, volume info
-    │   ├── vault.rs        # AES-256-GCM vault
     │   └── ...
     ├── third_party/
     │   ├── webview2-com-sys/   # patched: static WebView2Loader linking
@@ -96,6 +97,13 @@ is compiled straight into the exe and no external file is needed.
 
 ## Changelog
 
+- **v2.3.0** — zero-freeze engine: all disk-heavy commands moved off the main thread
+  (async + blocking pool) fixing the sluggish/stuck UI; developer & power-user pack
+  (Folder Size Analyzer, PATH Auditor, real Startup Manager, DNS flush, SHA-256,
+  open-terminal-here, secure shred, delete-on-reboot); removed fake demo tabs and
+  mock stats — Share page and Dashboard now show 100% real data; fixed broken FTP
+  address display and Files-page quick-action navigation; removed page-transition
+  blur and per-cell animations that caused scroll jank
 - **v2.2.0** — multitask terminal (one tab per task, per-task log channels), FTP
   start/stop force-close fix, performance overhaul (batched log rendering,
   windowed file lists, memoized components), premium light/dark redesign with

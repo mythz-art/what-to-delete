@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod dedup;
+mod devtools;
 mod files;
 mod finders;
 mod ftp;
@@ -51,9 +52,20 @@ extern "C" fn __wtd_force_shim_ref() -> usize {
 
 // ------------------------------ system ------------------------------
 
+/// v2.3 perf fix: sync Tauri commands run on the MAIN THREAD — every disk-heavy
+/// command is now async + spawn_blocking so the UI never freezes. This was the
+/// root cause of the "sluggish / stuck while scrolling" report: file listings,
+/// searches, copies and finder sweeps used to block the main thread for seconds
+/// (up to 60s for whole-drive walks).
+
 #[tauri::command]
-fn get_system_status(state: tauri::State<AppState>) -> SystemStatus {
-    sys::system_status(&state)
+async fn get_system_status(app: tauri::AppHandle) -> Result<SystemStatus, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<AppState>();
+        Ok(sys::system_status(state.inner()))
+    })
+    .await
+    .map_err(|e| format!("status failed: {e:?}"))?
 }
 
 #[tauri::command]
@@ -387,6 +399,11 @@ fn share_http_stop(state: tauri::State<AppState>) {
     share::http_stop(&state);
 }
 
+#[tauri::command]
+fn share_http_status(state: tauri::State<AppState>) -> HttpStats {
+    share::http_status(&state)
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct FtpStartConfig {
@@ -493,107 +510,255 @@ fn transfer_cancel(app: tauri::AppHandle, state: tauri::State<AppState>, id: Str
 // ------------------------------ file manager ------------------------------
 
 #[tauri::command]
-fn files_list(path: String, state: tauri::State<AppState>) -> Result<DirListing, String> {
-    let _ = state;
-    files::list_dir(&path)
+async fn files_list(path: String) -> Result<DirListing, String> {
+    tauri::async_runtime::spawn_blocking(move || files::list_dir(&path))
+        .await
+        .map_err(|e| format!("list failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn files_roots() -> Vec<FileEntry> {
-    files::quick_roots()
+async fn files_roots() -> Result<Vec<FileEntry>, String> {
+    tauri::async_runtime::spawn_blocking(files::quick_roots)
+        .await
+        .map_err(|e| format!("roots failed: {e:?}"))
 }
 
 #[tauri::command]
-fn files_mkdir(parent: String, name: String) -> Result<String, String> {
-    files::create_dir(&parent, &name)
+async fn files_mkdir(parent: String, name: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || files::create_dir(&parent, &name))
+        .await
+        .map_err(|e| format!("mkdir failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn files_rename(path: String, new_name: String) -> Result<String, String> {
-    files::rename(&path, &new_name)
+async fn files_rename(path: String, new_name: String) -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(move || files::rename(&path, &new_name))
+        .await
+        .map_err(|e| format!("rename failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn files_copy(paths: Vec<String>, dest: String) -> FileOpResult {
-    files::copy_items(paths, &dest)
+async fn files_copy(paths: Vec<String>, dest: String) -> Result<FileOpResult, String> {
+    tauri::async_runtime::spawn_blocking(move || files::copy_items(paths, &dest))
+        .await
+        .map_err(|e| format!("copy failed: {e:?}"))
 }
 
 #[tauri::command]
-fn files_move(paths: Vec<String>, dest: String) -> FileOpResult {
-    files::move_items(paths, &dest)
+async fn files_move(paths: Vec<String>, dest: String) -> Result<FileOpResult, String> {
+    tauri::async_runtime::spawn_blocking(move || files::move_items(paths, &dest))
+        .await
+        .map_err(|e| format!("move failed: {e:?}"))
 }
 
 #[tauri::command]
-fn files_delete(app: tauri::AppHandle, state: tauri::State<AppState>, paths: Vec<String>) -> FileOpResult {
-    let use_recycle = state.settings.lock().unwrap().use_recycle_bin;
-    let result = files::delete_items(paths, use_recycle);
+async fn files_delete(
+    app: tauri::AppHandle,
+    paths: Vec<String>,
+) -> Result<FileOpResult, String> {
+    let use_recycle = app
+        .state::<AppState>()
+        .settings
+        .lock()
+        .unwrap()
+        .use_recycle_bin;
+    let result = tauri::async_runtime::spawn_blocking(move || files::delete_items(paths, use_recycle))
+        .await
+        .map_err(|e| format!("delete failed: {e:?}"))?;
     if result.ok {
         logs::ok(&app, "FS", format!("deleted {} items ({} bytes)", result.affected, result.freed_bytes));
     } else {
         logs::warn(&app, "FS", result.error.clone().unwrap_or_default());
     }
-    result
+    Ok(result)
 }
 
 #[tauri::command]
-fn files_props(path: String) -> Result<ItemProps, String> {
-    files::item_props(&path)
+async fn files_props(path: String) -> Result<ItemProps, String> {
+    tauri::async_runtime::spawn_blocking(move || files::item_props(&path))
+        .await
+        .map_err(|e| format!("props failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn files_search(root: String, query: String, max: Option<u64>) -> Vec<FileEntry> {
-    files::search_dir(&root, &query, max.unwrap_or(300))
+async fn files_search(root: String, query: String, max: Option<u64>) -> Result<Vec<FileEntry>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        Ok(files::search_dir(&root, &query, max.unwrap_or(300)))
+    })
+    .await
+    .map_err(|e| format!("search failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn files_open(path: String) -> bool {
-    files::open_in_explorer(&path)
+async fn files_open(path: String) -> Result<bool, String> {
+    tauri::async_runtime::spawn_blocking(move || files::open_in_explorer(&path))
+        .await
+        .map_err(|e| format!("open failed: {e:?}"))
 }
 
 // ------------------------------ finders ------------------------------
 
 #[tauri::command]
-fn finder_large_files(roots: Option<Vec<String>>, min_mb: Option<u64>) -> Vec<FinderItem> {
-    let min = min_mb.unwrap_or(100).max(1) * 1024 * 1024;
-    finders::large_files(roots.unwrap_or_default(), min, 150)
+async fn finder_large_files(
+    roots: Option<Vec<String>>,
+    min_mb: Option<u64>,
+) -> Result<Vec<FinderItem>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let min = min_mb.unwrap_or(100).max(1) * 1024 * 1024;
+        Ok(finders::large_files(roots.unwrap_or_default(), min, 150))
+    })
+    .await
+    .map_err(|e| format!("finder failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn finder_old_files(roots: Option<Vec<String>>, days: Option<u64>, min_mb: Option<u64>) -> Vec<FinderItem> {
-    let d = days.unwrap_or(90).max(1);
-    let min = min_mb.unwrap_or(10) * 1024 * 1024;
-    finders::old_files(roots.unwrap_or_default(), d, min, 200)
+async fn finder_old_files(
+    roots: Option<Vec<String>>,
+    days: Option<u64>,
+    min_mb: Option<u64>,
+) -> Result<Vec<FinderItem>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let d = days.unwrap_or(90).max(1);
+        let min = min_mb.unwrap_or(10) * 1024 * 1024;
+        Ok(finders::old_files(roots.unwrap_or_default(), d, min, 200))
+    })
+    .await
+    .map_err(|e| format!("finder failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn finder_empty_dirs(root: String) -> Vec<FinderItem> {
-    let r = if root.is_empty() {
-        std::env::var("USERPROFILE").unwrap_or_default()
-    } else {
-        root
-    };
-    finders::empty_dirs(r, 400)
+async fn finder_empty_dirs(root: String) -> Result<Vec<FinderItem>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let r = if root.is_empty() {
+            std::env::var("USERPROFILE").unwrap_or_default()
+        } else {
+            root
+        };
+        Ok(finders::empty_dirs(r, 400))
+    })
+    .await
+    .map_err(|e| format!("finder failed: {e:?}"))?
 }
 
 #[tauri::command]
-fn finder_recycle_bin() -> RecycleBinStats {
-    finders::recycle_bin_stats()
+async fn finder_recycle_bin() -> Result<RecycleBinStats, String> {
+    tauri::async_runtime::spawn_blocking(finders::recycle_bin_stats)
+        .await
+        .map_err(|e| format!("recycle scan failed: {e:?}"))
 }
 
 #[tauri::command]
-fn finder_empty_recycle_bin(app: tauri::AppHandle) -> bool {
-    let ok = finders::recycle_bin_empty();
+async fn finder_empty_recycle_bin(app: tauri::AppHandle) -> Result<bool, String> {
+    let ok = tauri::async_runtime::spawn_blocking(finders::recycle_bin_empty)
+        .await
+        .map_err(|e| format!("empty failed: {e:?}"))?;
     if ok {
         logs::ok(&app, "SYS", "recycle bin emptied");
     } else {
         logs::warn(&app, "SYS", "recycle bin empty failed");
     }
-    ok
+    Ok(ok)
 }
 
 #[tauri::command]
-fn finder_installed_apps() -> Vec<InstalledApp> {
-    finders::installed_apps()
+async fn finder_installed_apps() -> Result<Vec<InstalledApp>, String> {
+    tauri::async_runtime::spawn_blocking(finders::installed_apps)
+        .await
+        .map_err(|e| format!("registry scan failed: {e:?}"))
+}
+
+// ------------------------------ v2.3 dev & power tools ------------------------------
+
+#[tauri::command]
+async fn folder_sizes(root: Option<String>, limit: Option<usize>) -> Result<Vec<FolderSize>, String> {
+    tauri::async_runtime::spawn_blocking(move || devtools::folder_sizes(root, limit.unwrap_or(20)))
+        .await
+        .map_err(|e| format!("folder scan failed: {e:?}"))
+}
+
+#[tauri::command]
+async fn path_audit() -> Result<PathAuditReport, String> {
+    tauri::async_runtime::spawn_blocking(devtools::path_audit)
+        .await
+        .map_err(|e| format!("path audit failed: {e:?}"))
+}
+
+#[tauri::command]
+async fn dns_flush() -> Result<String, String> {
+    tauri::async_runtime::spawn_blocking(devtools::dns_flush)
+        .await
+        .map_err(|e| format!("dns flush failed: {e:?}"))?
+}
+
+#[tauri::command]
+async fn hash_file(path: String) -> Result<HashResult, String> {
+    tauri::async_runtime::spawn_blocking(move || devtools::hash_file(&path))
+        .await
+        .map_err(|e| format!("hash failed: {e:?}"))?
+}
+
+#[tauri::command]
+async fn open_terminal(path: String) -> Result<bool, String> {
+    tauri::async_runtime::spawn_blocking(move || devtools::open_terminal(&path))
+        .await
+        .map_err(|e| format!("terminal failed: {e:?}"))
+}
+
+#[tauri::command]
+async fn shred_paths(app: tauri::AppHandle, paths: Vec<String>) -> Result<FileOpResult, String> {
+    let task_id = tasks::begin(&app, "clean", format!("Shred {} targets", paths.len()));
+    logs::t_info(&app, &task_id, "TOOL", format!("secure shred — 3-pass overwrite on {} targets", paths.len()));
+    let app2 = app.clone();
+    let tid = task_id.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || devtools::shred_paths(&paths))
+        .await
+        .map_err(|e| format!("shred failed: {e:?}"))?;
+    if result.ok {
+        logs::t_ok(
+            &app,
+            &tid,
+            "TOOL",
+            format!("shredded {} files — {} unrecoverably freed", result.affected, tasks::fmt_bytes(result.freed_bytes)),
+        );
+    }
+    tasks::finish(
+        &app,
+        &task_id,
+        if result.ok { "done" } else { "error" },
+        &format!("{} files shredded · {} freed", result.affected, tasks::fmt_bytes(result.freed_bytes)),
+    );
+    let _ = app2;
+    Ok(result)
+}
+
+#[tauri::command]
+async fn delete_on_reboot(app: tauri::AppHandle, paths: Vec<String>) -> Result<FileOpResult, String> {
+    let result = tauri::async_runtime::spawn_blocking(move || devtools::delete_on_reboot(&paths))
+        .await
+        .map_err(|e| format!("schedule failed: {e:?}"))?;
+    if result.ok {
+        logs::ok(&app, "FS", format!("{} file(s) scheduled for deletion on next reboot", result.affected));
+    } else {
+        logs::warn(&app, "FS", result.error.clone().unwrap_or_default());
+    }
+    Ok(result)
+}
+
+#[tauri::command]
+async fn startup_list() -> Result<Vec<StartupEntry>, String> {
+    tauri::async_runtime::spawn_blocking(devtools::startup_list)
+        .await
+        .map_err(|e| format!("startup scan failed: {e:?}"))
+}
+
+#[tauri::command]
+async fn startup_remove(app: tauri::AppHandle, id: String) -> Result<(), String> {
+    let id2 = id.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || devtools::startup_remove(&id2))
+        .await
+        .map_err(|e| format!("remove failed: {e:?}"))?;
+    logs::ok(&app, "SYS", format!("startup entry removed: {id}"));
+    result
 }
 
 fn main() {
@@ -624,6 +789,7 @@ fn main() {
             vault_remove,
             share_http_start,
             share_http_stop,
+            share_http_status,
             share_ftp_start,
             share_ftp_stop,
             share_ftp_status,
@@ -647,12 +813,22 @@ fn main() {
             finder_empty_dirs,
             finder_recycle_bin,
             finder_empty_recycle_bin,
-            finder_installed_apps
+            finder_installed_apps,
+            folder_sizes,
+            path_audit,
+            dns_flush,
+            hash_file,
+            open_terminal,
+            shred_paths,
+            delete_on_reboot,
+            startup_list,
+            startup_remove
         ])
         .setup(|app| {
-            logs::info(app.handle(), "APP", "What to Delete? v2.2.0 — kernel online");
+            logs::info(app.handle(), "APP", "What to Delete? v2.3.0 — kernel online");
             logs::dim(app.handle(), "APP", "multi-task terminal online — per-task log channels active");
             logs::dim(app.handle(), "APP", "single-exe mode: WebView2 loader statically linked");
+            logs::dim(app.handle(), "APP", "v2.3: main-thread I/O offloaded · power tools armed (folder sizes, PATH audit, autoruns, shred)");
             logs::dim(app.handle(), "SYS", format!("host: {}", sys::computer_name()));
             Ok(())
         })

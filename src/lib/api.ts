@@ -6,13 +6,18 @@ import type {
   FileEntry,
   FileOpResult,
   FinderItem,
+  FolderSize,
   FtpStats,
+  HashResult,
+  HttpStats,
   InstalledApp,
   ItemProps,
   LogEntry,
+  PathAuditReport,
   RecycleBinStats,
   ScanProgress,
   ScanReport,
+  StartupEntry,
   SystemStatus,
   TaskInfo,
   ToolInfo,
@@ -66,6 +71,7 @@ export interface Api {
   // share: http + ftp + public tunnel
   shareHttpStart(port: number): Promise<{ url: string }>;
   shareHttpStop(): Promise<void>;
+  shareHttpStatus(): Promise<HttpStats>;
   shareFtpStart(cfg: {
     port: number;
     root?: string;
@@ -101,6 +107,17 @@ export interface Api {
   finderRecycleBin(): Promise<RecycleBinStats>;
   finderEmptyRecycleBin(): Promise<boolean>;
   finderInstalledApps(): Promise<InstalledApp[]>;
+
+  // v2.3: dev & power tools
+  folderSizes(root?: string, limit?: number): Promise<FolderSize[]>;
+  pathAudit(): Promise<PathAuditReport>;
+  dnsFlush(): Promise<string>;
+  hashFile(path: string): Promise<HashResult>;
+  openTerminal(path: string): Promise<boolean>;
+  shredPaths(paths: string[]): Promise<FileOpResult>;
+  deleteOnReboot(paths: string[]): Promise<FileOpResult>;
+  startupList(): Promise<StartupEntry[]>;
+  startupRemove(id: string): Promise<void>;
 
   windowMinimize(): void;
   windowToggleMaximize(): void;
@@ -183,6 +200,7 @@ function createRealApi(): Api {
 
     shareHttpStart: (port) => invoke<{ url: string }>("share_http_start", { port }),
     shareHttpStop: () => invoke<void>("share_http_stop"),
+    shareHttpStatus: () => invoke<HttpStats>("share_http_status"),
     shareFtpStart: (cfg) => invoke<{ port: number; host: string }>("share_ftp_start", { cfg }),
     shareFtpStop: () => invoke<void>("share_ftp_stop"),
     shareFtpStatus: () => invoke<FtpStats>("share_ftp_status"),
@@ -210,6 +228,16 @@ function createRealApi(): Api {
     finderRecycleBin: () => invoke<RecycleBinStats>("finder_recycle_bin"),
     finderEmptyRecycleBin: () => invoke<boolean>("finder_empty_recycle_bin"),
     finderInstalledApps: () => invoke<InstalledApp[]>("finder_installed_apps"),
+
+    folderSizes: (root, limit) => invoke<FolderSize[]>("folder_sizes", { root, limit }),
+    pathAudit: () => invoke<PathAuditReport>("path_audit"),
+    dnsFlush: () => invoke<string>("dns_flush"),
+    hashFile: (path) => invoke<HashResult>("hash_file", { path }),
+    openTerminal: (path) => invoke<boolean>("open_terminal", { path }),
+    shredPaths: (paths) => invoke<FileOpResult>("shred_paths", { paths }),
+    deleteOnReboot: (paths) => invoke<FileOpResult>("delete_on_reboot", { paths }),
+    startupList: () => invoke<StartupEntry[]>("startup_list"),
+    startupRemove: (id) => invoke<void>("startup_remove", { id }),
 
     windowMinimize: () => {
       void import("@tauri-apps/api/window").then((m) => m.getCurrentWindow().minimize());

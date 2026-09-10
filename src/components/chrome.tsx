@@ -87,7 +87,7 @@ export function TitleBar() {
         <Logo size={20} glow={false} />
         <span className="text-xs font-medium tracking-wide text-ink-2">What to Delete?</span>
         <span className="rounded-full border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-1.5 py-px text-[10px] font-semibold text-ink-3">
-          v2.2
+          v2.3
         </span>
       </div>
       <div className="flex items-center gap-0.5">
@@ -313,12 +313,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 /* -------------------------------- page shell -------------------------------- */
 
 export function PageShell({ children }: { children: ReactNode }) {
+  // v2.3 perf: the old transition animated filter: blur() over the ENTIRE page
+  // content — a GPU-heavy full-viewport effect that caused visible jank on
+  // page switches (and stacked with scroll). Opacity/transform only now.
   return (
     <motion.div
-      initial={{ opacity: 0, y: 18, filter: "blur(4px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      exit={{ opacity: 0, y: -12, filter: "blur(3px)" }}
-      transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>

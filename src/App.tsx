@@ -67,7 +67,7 @@ function BootSplash() {
           transition={{ delay: 0.45 }}
           className="mt-1.5 text-[12px] font-medium tracking-[0.2em] text-ink-3"
         >
-          DISK&nbsp;GUARDIAN&nbsp;v2.2
+          DISK&nbsp;GUARDIAN&nbsp;v2.3
         </motion.div>
       </div>
     </motion.div>

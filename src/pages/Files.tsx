@@ -36,6 +36,13 @@ export function FilesPage() {
   const [tab, setTab] = useState<TabId>((navContext?.filesTab as TabId) ?? "explorer");
   const explorerPath = (navContext?.explorerPath as string) ?? undefined;
 
+  // v2.3 fix: react to re-navigation with a new context (Dashboard quick actions
+  // and drive cards previously did nothing when the page was already open).
+  useEffect(() => {
+    const ctxTab = navContext?.filesTab as TabId | undefined;
+    if (ctxTab) setTab(ctxTab);
+  }, [navContext]);
+
   return (
     <PageShell>
       <div className="mb-5">

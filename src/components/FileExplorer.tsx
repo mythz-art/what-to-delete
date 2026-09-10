@@ -26,6 +26,10 @@ import {
   HardDrive,
   ChevronRight,
   Loader2,
+  TerminalSquare,
+  Hash,
+  Flame,
+  RotateCcw,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { useApp } from "@/lib/store";
@@ -246,6 +250,67 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
     }
   };
 
+  /* ---------- v2.3 power-user actions ---------- */
+
+  const openTerminalHere = async (entry: FileEntry) => {
+    try {
+      const ok = await api.openTerminal(entry.isDir ? entry.path : path ?? entry.path);
+      if (!ok) pushToast({ kind: "error", title: "No terminal found", message: "wt.exe / powershell.exe / cmd.exe all failed" });
+    } catch (e) {
+      pushToast({ kind: "error", title: "Terminal failed", message: String(e) });
+    }
+  };
+
+  const copyHash = async (entry: FileEntry) => {
+    try {
+      const r = await api.hashFile(entry.path);
+      void navigator.clipboard?.writeText(r.hex);
+      pushToast({
+        kind: "success",
+        title: `${r.algo} copied to clipboard`,
+        message: `${r.hex.slice(0, 24)}… · ${formatBytes(r.bytes, 0)} hashed in ${r.ms} ms`,
+      });
+    } catch (e) {
+      pushToast({ kind: "error", title: "Hash failed", message: String(e) });
+    }
+  };
+
+  const shred = async (entry: FileEntry) => {
+    if (
+      !confirm(
+        `SECURELY SHRED "${entry.name}"?\n\nThe file will be overwritten 3 times with random data, then destroyed. This is UNRECOVERABLE — worse than the Recycle Bin.`,
+      )
+    )
+      return;
+    try {
+      const r = await api.shredPaths([entry.path]);
+      if (r.ok) {
+        pushToast({ kind: "success", title: `Shredded ${r.affected} file(s)`, message: `${formatBytes(r.freedBytes)} unrecoverably freed` });
+        navigate(path, false);
+        void refreshStatus();
+      } else {
+        pushToast({ kind: "error", title: "Shred incomplete", message: r.error ?? "" });
+      }
+    } catch (e) {
+      pushToast({ kind: "error", title: "Shred failed", message: String(e) });
+    }
+  };
+
+  const deleteOnReboot = async (entry: FileEntry) => {
+    if (!confirm(`Schedule "${entry.name}" for deletion at next REBOOT?\n\nUse this for files that are locked / "in use" and refuse normal deletion.`))
+      return;
+    try {
+      const r = await api.deleteOnReboot([entry.path]);
+      if (r.ok) {
+        pushToast({ kind: "success", title: "Scheduled", message: `${entry.name} will be deleted at next reboot` });
+      } else {
+        pushToast({ kind: "error", title: "Could not schedule", message: r.error ?? "try running the app as administrator" });
+      }
+    } catch (e) {
+      pushToast({ kind: "error", title: "Schedule failed", message: String(e) });
+    }
+  };
+
   // close context menu on click anywhere
   useEffect(() => {
     const close = () => setMenu(null);
@@ -326,6 +391,19 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
             <List className="size-4" />
           </button>
         </div>
+
+        <Button
+          variant="ghost"
+          onClick={() => path && void api.openTerminal(path).then((ok) => {
+            if (!ok) pushToast({ kind: "error", title: "No terminal found" });
+          })}
+          disabled={!path}
+          icon={<TerminalSquare className="size-4" />}
+          className="!px-3"
+          title="Open terminal in this folder (wt / PowerShell / cmd)"
+        >
+          <span className="hidden sm:inline">Terminal</span>
+        </Button>
 
         <select
           value={sort}
@@ -481,6 +559,56 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
                 {item.label}
               </button>
             ))}
+            {/* v2.3 power-user pack */}
+            <div className="my-1 border-t border-[var(--wtd-edge)]" />
+            <button
+              onClick={() => {
+                void openTerminalHere(menu.entry);
+                setMenu(null);
+              }}
+              className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-ink-2 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink"
+              title="Open Windows Terminal / PowerShell here"
+            >
+              <TerminalSquare className="size-3.5 text-ink-3" />
+              Open Terminal Here
+            </button>
+            {!menu.entry.isDir && (
+              <>
+                <button
+                  onClick={() => {
+                    void copyHash(menu.entry);
+                    setMenu(null);
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-ink-2 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink"
+                  title="Compute SHA-256 and copy to clipboard"
+                >
+                  <Hash className="size-3.5 text-ink-3" />
+                  Copy SHA-256
+                </button>
+                <button
+                  onClick={() => {
+                    void shred(menu.entry);
+                    setMenu(null);
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-[var(--wtd-warn)] transition-colors hover:bg-[var(--wtd-warn-soft)]"
+                  title="Overwrite 3 times, then delete — unrecoverable"
+                >
+                  <Flame className="size-3.5" />
+                  Secure Shred
+                </button>
+                <button
+                  onClick={() => {
+                    void deleteOnReboot(menu.entry);
+                    setMenu(null);
+                  }}
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-ink-2 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink"
+                  title="For locked files — Windows deletes them during the next boot"
+                >
+                  <RotateCcw className="size-3.5 text-ink-3" />
+                  Delete on Reboot
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 setSelected(new Set([menu.entry.path]));
@@ -606,11 +734,8 @@ function FileRows({
         {visible.map((e) => {
           const isSel = selected.has(e.path);
           return (
-            <motion.button
+            <button
               key={e.path}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.18 }}
               onClick={(ev) => {
                 if (renaming === e.path) return;
                 onToggle(e, ev, ev.ctrlKey || ev.metaKey);
@@ -620,7 +745,7 @@ function FileRows({
                 ev.preventDefault();
                 onMenu(ev.clientX, ev.clientY, e);
               }}
-              className={`group flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all ${
+              className={`perf-row group flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-colors ${
                 isSel
                   ? "border-indigo-300/50 bg-[var(--wtd-accent-soft)]"
                   : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] hover:border-[var(--wtd-edge-2)] hover:bg-[var(--wtd-card-2)]"
@@ -647,7 +772,7 @@ function FileRows({
               {!e.isDir && e.bytes > 0 && (
                 <span className="text-[10px] tabular-nums text-ink-4">{formatBytes(e.bytes, 0)}</span>
               )}
-            </motion.button>
+            </button>
           );
         })}
         {hasMore && (
