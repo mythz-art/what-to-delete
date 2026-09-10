@@ -24,10 +24,10 @@ Tauri 2 · React 19 · TypeScript · Tailwind CSS 4 · Rust
 
 ## 📦 Download
 
-Grab **`WhatToDelete.exe`** from [Releases](../../releases) — it is a **single 5.6 MB portable executable**.
+Grab **`WhatToDelete.exe`** from [Releases](../../releases) — it is a **single 6.0 MB portable executable**.
 No installer, no DLLs, no dependencies to manage. (WebView2Loader is statically linked.)
 
-Direct download (permanent): [onlyfiles.com/wCwGwwAVE6xi](https://onlyfiles.com/wCwGwwAVE6xi)
+Direct download (permanent): [onlyfiles.com/w2wGwDevwuLQ](https://onlyfiles.com/w2wGwDevwuLQ)
 
 ## ⚡ Quick start
 
