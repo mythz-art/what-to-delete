@@ -200,6 +200,28 @@ pub struct LogEntry {
     pub level: String,
     pub tag: String,
     pub msg: String,
+    /// owning task id — set when the line belongs to a tracked task
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub task: Option<String>,
+}
+
+/* ============================== v2.2 additions ============================== */
+
+/// One tab in the multi-tab terminal: a tracked unit of work with its own
+/// isolated log stream (scan / dedup / clean / tool / transfer …).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TaskInfo {
+    pub id: String,
+    /// scan | dedup | clean | tool | transfer | vault
+    pub kind: String,
+    pub title: String,
+    /// running | done | error | cancelled
+    pub state: String,
+    pub started_at: u64,
+    pub ended_at: Option<u64>,
+    /// one-line result summary shown on the finished tab
+    pub summary: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]

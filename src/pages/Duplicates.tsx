@@ -84,7 +84,7 @@ export function DuplicatesPage() {
             <div className="text-3xl font-semibold tabular-nums tracking-tight">
               <AnimatedNumber value={pct} format={(n) => `${Math.round(n)}%`} />
             </div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3">
               Hashing
             </div>
           </ProgressRing>
@@ -93,10 +93,10 @@ export function DuplicatesPage() {
             <FileGridPulse cells={28} />
             <div className="mt-6">
               <div className="mb-2 flex items-end justify-between">
-                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-3">
                   Comparing content hashes
                 </span>
-                <span className="font-mono text-xs tabular-nums text-slate-500">
+                <span className="font-mono text-xs tabular-nums text-ink-3">
                   {progress?.currentPath || "…"}
                 </span>
               </div>
@@ -122,7 +122,7 @@ export function DuplicatesPage() {
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">
             <AnimatedNumber value={freed} format={(n) => formatBytes(n)} /> recovered
           </h1>
-          <p className="mt-2 text-sm text-slate-400">Only your keeper copies remain on disk.</p>
+          <p className="mt-2 text-sm text-ink-3">Only your keeper copies remain on disk.</p>
           <div className="mt-7">
             <Button variant="primary" icon={<RefreshCw className="size-4" />} onClick={start}>
               Scan again
@@ -153,7 +153,7 @@ export function DuplicatesPage() {
               <h1 className="mt-4 text-[26px] font-semibold leading-tight tracking-tight">
                 Two files, one soul
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-ink-3">
                 Finds byte-identical files by size, partial and full SHA-256 hashes — not just by name.
                 Keeps your keeper, frees the clones.
               </p>
@@ -161,20 +161,20 @@ export function DuplicatesPage() {
                 <Button variant="primary" icon={<Files className="size-4" />} onClick={start}>
                   Find duplicates
                 </Button>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <ShieldCheck className="size-3.5 text-emerald-400" />
+                <div className="flex items-center gap-1.5 text-xs text-ink-3">
+                  <ShieldCheck className="size-3.5 text-[var(--wtd-ok)]" />
                   1 file per group always survives
                 </div>
               </div>
             </div>
             <div className="hidden w-[300px] shrink-0 md:block">
               <div className="relative">
-                <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4 font-mono text-[11px] text-slate-400">
-                  <div>IMG_2043.jpg <span className="text-cyan-300">8.4 MB</span></div>
+                <div className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-4 font-mono text-[11px] text-ink-3">
+                  <div>IMG_2043.jpg <span className="text-[var(--wtd-cyan)]">8.4 MB</span></div>
                   <div className="mt-1 opacity-60">C:\Pictures\Camera\</div>
-                  <div className="mt-3">IMG_2043.jpg <span className="text-cyan-300">8.4 MB</span></div>
+                  <div className="mt-3">IMG_2043.jpg <span className="text-[var(--wtd-cyan)]">8.4 MB</span></div>
                   <div className="mt-1 opacity-60">C:\Pictures\Backup\</div>
-                  <div className="mt-3">IMG_2043.jpg <span className="text-cyan-300">8.4 MB</span></div>
+                  <div className="mt-3">IMG_2043.jpg <span className="text-[var(--wtd-cyan)]">8.4 MB</span></div>
                   <div className="mt-1 opacity-60">D:\Photos\2026\May\</div>
                 </div>
                 <motion.div
@@ -198,9 +198,9 @@ export function DuplicatesPage() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Duplicate groups</h1>
-          <p className="mt-1 text-[13px] text-slate-500">
+          <p className="mt-1 text-[13px] text-ink-3">
             {groups.length} groups ·{" "}
-            <span className="font-semibold text-cyan-300">{formatBytes(totalWaste)}</span> recoverable
+            <span className="font-semibold text-[var(--wtd-cyan)]">{formatBytes(totalWaste)}</span> recoverable
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -217,21 +217,21 @@ export function DuplicatesPage() {
       <div className="mt-6 space-y-4">
         {groups.map((g, idx) => (
           <GlassCard key={g.id} delay={0.05 * idx} className="overflow-hidden">
-            <div className="flex items-center gap-4 border-b border-white/[0.05] px-5 py-3.5">
-              <div className="grid size-9 place-items-center rounded-xl border border-cyan-300/25 bg-cyan-400/10 text-cyan-300">
+            <div className="flex items-center gap-4 border-b border-[var(--wtd-edge)] px-5 py-3.5">
+              <div className="grid size-9 place-items-center rounded-xl border border-[var(--wtd-cyan-soft)] bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]">
                 <Copy className="size-4" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium">
                   {g.files[0].path.split("\\").pop() ?? "file"}
                 </div>
-                <div className="font-mono text-[11px] text-slate-500">
+                <div className="font-mono text-[11px] text-ink-3">
                   SHA-256 {shortHash(g.hash)}… · {g.files.length} copies
                 </div>
               </div>
               <Badge tone="rose">−{formatBytes(g.wastedBytes)} if cleaned</Badge>
             </div>
-            <div className="divide-y divide-white/[0.04]">
+            <div className="divide-y divide-[var(--wtd-edge)]">
               {g.files.map((f) => {
                 const keeper = keepMap[g.id] === f.path;
                 return (
@@ -239,25 +239,25 @@ export function DuplicatesPage() {
                     key={f.path}
                     onClick={() => setKeepMap((m) => ({ ...m, [g.id]: f.path }))}
                     className={`flex w-full items-center gap-4 px-5 py-3 text-left transition-colors ${
-                      keeper ? "bg-emerald-400/[0.06]" : "hover:bg-white/[0.03]"
+                      keeper ? "bg-emerald-400/[0.06]" : "hover:bg-[var(--wtd-card-2)]"
                     }`}
                   >
                     <div
                       className={`grid size-5 shrink-0 place-items-center rounded-full border transition-all ${
                         keeper
-                          ? "border-emerald-400/60 bg-emerald-400/20 text-emerald-300"
-                          : "border-white/15"
+                          ? "border-emerald-400/60 bg-[var(--wtd-ok-soft)] text-[var(--wtd-ok)]"
+                          : "border-[var(--wtd-edge-2)]"
                       }`}
                     >
                       {keeper && <Crown className="size-3" />}
                     </div>
-                    <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-400">
+                    <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-ink-3">
                       {f.path}
                     </span>
-                    <span className="hidden shrink-0 text-[11px] tabular-nums text-slate-500 sm:block">
+                    <span className="hidden shrink-0 text-[11px] tabular-nums text-ink-3 sm:block">
                       {formatDate(f.modified)}
                     </span>
-                    <span className="shrink-0 text-xs tabular-nums text-slate-300">
+                    <span className="shrink-0 text-xs tabular-nums text-ink-2">
                       {formatBytes(f.bytes)}
                     </span>
                     {keeper ? (
@@ -291,9 +291,9 @@ export function DuplicatesPage() {
                 <div className="text-lg font-semibold tabular-nums tracking-tight">
                   {formatBytes(totalWaste)}
                 </div>
-                <div className="text-[11px] text-slate-500">{removedPaths.length} clones selected</div>
+                <div className="text-[11px] text-ink-3">{removedPaths.length} clones selected</div>
               </div>
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-8 w-px bg-[var(--wtd-card-3)]" />
               <Button variant="danger" icon={<Trash2 className="size-4" />} onClick={() => setConfirmOpen(true)}>
                 Remove duplicates
               </Button>
@@ -304,13 +304,13 @@ export function DuplicatesPage() {
 
       <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} width="max-w-sm">
         <div className="flex items-start gap-4">
-          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-rose-400/30 bg-rose-400/10">
-            <Trash2 className="size-5 text-rose-300" />
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[var(--wtd-bad-soft)] bg-[var(--wtd-bad-soft)]">
+            <Trash2 className="size-5 text-[var(--wtd-bad)]" />
           </div>
           <div>
             <div className="text-base font-semibold">Remove {removedPaths.length} duplicate copies?</div>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-400">
-              Frees <span className="font-semibold text-slate-200">{formatBytes(totalWaste)}</span>. One keeper
+            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">
+              Frees <span className="font-semibold text-ink-2">{formatBytes(totalWaste)}</span>. One keeper
               copy stays for every group.
             </p>
           </div>

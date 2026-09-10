@@ -17,6 +17,7 @@ import type {
   ScanReport,
   ShareMode,
   SystemStatus,
+  TaskInfo,
   ToolInfo,
   ToolResult,
   TransferItem,
@@ -153,6 +154,69 @@ export class MockEngine {
     return this.logs.slice(-limit);
   }
 
+  // ---------- v2.2: multi-task terminal ----------
+
+  private tasks: TaskInfo[] = [];
+  private taskLogs = new Map<string, LogEntry[]>();
+
+  async getTasks(): Promise<TaskInfo[]> {
+    await sleep(30);
+    return [...this.tasks];
+  }
+
+  async getTaskBuffer(taskId: string, limit = 500): Promise<LogEntry[]> {
+    await sleep(30);
+    return (this.taskLogs.get(taskId) ?? []).slice(-limit);
+  }
+
+  onTaskUpdate(cb: (t: TaskInfo) => void): () => void {
+    return this.emitter.on("task:update", cb as Handler);
+  }
+
+  onTaskLog(taskId: string, cb: (l: LogEntry) => void): () => void {
+    return this.emitter.on(`task:log:${taskId}`, cb as Handler);
+  }
+
+  onFtpStatus(cb: (s: FtpStats) => void): () => void {
+    return this.emitter.on("ftp:status", cb as Handler);
+  }
+
+  private mockTaskBegin(kind: string, title: string): string {
+    const id = `${kind}-${Date.now()}`;
+    const task: TaskInfo = {
+      id,
+      kind,
+      title,
+      state: "running",
+      startedAt: Date.now(),
+      endedAt: null,
+      summary: null,
+    };
+    this.tasks.push(task);
+    if (this.tasks.length > 12) this.tasks.shift();
+    this.emitter.emit("task:update", { ...task });
+    return id;
+  }
+
+  private mockTaskLog(taskId: string, level: LogEntry["level"], tag: string, msg: string): void {
+    const entry: LogEntry = { t: Date.now(), level, tag, msg, task: taskId };
+    const buf = this.taskLogs.get(taskId) ?? [];
+    buf.push(entry);
+    this.taskLogs.set(taskId, buf.slice(-1500));
+    this.logs.push(entry);
+    this.emitter.emit(`task:log:${taskId}`, entry);
+    this.emitter.emit("log:line", entry);
+  }
+
+  private mockTaskEnd(taskId: string, state: string, summary: string): void {
+    const task = this.tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    task.state = state;
+    task.endedAt = Date.now();
+    task.summary = summary;
+    this.emitter.emit("task:update", { ...task });
+  }
+
   // ---------- junk scanning ----------
 
   onScanProgress(cb: (p: ScanProgress) => void): () => void {
@@ -166,6 +230,7 @@ export class MockEngine {
     const reportItems = this.junk;
 
     const run = async (): Promise<ScanReport> => {
+      const taskId = this.mockTaskBegin("scan", "Junk Scan");
       this.log("info", "SCAN", "junk sweep initiated — acquiring targets");
       const steps = 72;
       for (let i = 0; i <= steps; i++) {
@@ -175,7 +240,7 @@ export class MockEngine {
         const foundBytes = Math.round((i / steps) * reportItems.reduce((s, x) => s + x.bytes, 0));
         const path = SCAN_PATHS[i % SCAN_PATHS.length];
         if (i % 6 === 0) {
-          this.log("dim", "SCAN", `probe ${path}`);
+          this.mockTaskLog(taskId, "dim", "SCAN", `probe ${path}`);
         }
         this.emitter.emit("scan:progress", {
           phase: i < steps * 0.85 ? "scanning" : "analyzing",
@@ -189,6 +254,7 @@ export class MockEngine {
       }
       const categories = aggregateCategories(reportItems);
       this.log("ok", "SCAN", `sweep complete :: ${reportItems.reduce((s, i) => s + i.bytes, 0)} bytes reclaimable`);
+      this.mockTaskEnd(taskId, "done", `${reportItems.length} items found`);
       return {
         categories,
         items: reportItems,

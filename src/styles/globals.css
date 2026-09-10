@@ -1,14 +1,124 @@
 @import "tailwindcss";
 
-@theme {
+/* ============================================================
+   WTD v2.2 — Premium design system
+   Light theme is the default; [data-theme="dark"] flips every token.
+   The hacker terminal is always dark (it is a CRT — that is its identity).
+   ============================================================ */
+
+:root {
+  /* surfaces */
+  --wtd-bg: #f4f6fb;
+  --wtd-bg-soft: #eaeef7;
+  --wtd-card: #ffffff;
+  --wtd-card-2: #f7f9fd;
+  --wtd-card-3: #eef2f9;
+  --wtd-glass: rgba(255, 255, 255, 0.72);
+  /* ink */
+  --wtd-ink: #0b1220;
+  --wtd-ink-2: #3d4a5f;
+  --wtd-ink-3: #74839b;
+  --wtd-ink-4: #9aa7ba;
+  /* edges */
+  --wtd-edge: rgba(11, 18, 32, 0.09);
+  --wtd-edge-2: rgba(11, 18, 32, 0.16);
+  /* brand */
+  --wtd-accent: #4f46e5;
+  --wtd-accent-2: #06b6d4;
+  --wtd-accent-soft: rgba(79, 70, 229, 0.10);
+  --wtd-accent-line: rgba(79, 70, 229, 0.28);
+  --wtd-accent-ink: #4338ca;
+  /* semantic */
+  --wtd-ok: #059669;
+  --wtd-ok-soft: rgba(5, 150, 105, 0.10);
+  --wtd-warn: #b45309;
+  --wtd-warn-soft: rgba(180, 83, 9, 0.10);
+  --wtd-bad: #dc2626;
+  --wtd-bad-soft: rgba(220, 38, 38, 0.10);
+  --wtd-violet: #7c3aed;
+  --wtd-violet-soft: rgba(124, 58, 237, 0.10);
+  --wtd-fuchsia: #c026d3;
+  --wtd-fuchsia-soft: rgba(192, 38, 211, 0.10);
+  --wtd-cyan: #0e7490;
+  --wtd-cyan-soft: rgba(14, 116, 144, 0.10);
+  /* shadows */
+  --wtd-shadow: 0 1px 2px rgba(11, 18, 32, 0.05), 0 8px 28px rgba(11, 18, 32, 0.08);
+  --wtd-shadow-lg: 0 2px 4px rgba(11, 18, 32, 0.06), 0 18px 48px rgba(11, 18, 32, 0.14);
+  --wtd-glow: 0 0 0 rgba(0, 0, 0, 0);
+  /* misc */
+  --wtd-scroll: rgba(11, 18, 32, 0.22);
+  --wtd-sheen: rgba(255, 255, 255, 0.65);
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --wtd-bg: #070b14;
+  --wtd-bg-soft: #0a1020;
+  --wtd-card: rgba(255, 255, 255, 0.035);
+  --wtd-card-2: rgba(255, 255, 255, 0.055);
+  --wtd-card-3: rgba(255, 255, 255, 0.085);
+  --wtd-glass: rgba(10, 15, 28, 0.72);
+  --wtd-ink: #f1f5fb;
+  --wtd-ink-2: #c3cddd;
+  --wtd-ink-3: #8d9bb3;
+  --wtd-ink-4: #5d6b85;
+  --wtd-edge: rgba(255, 255, 255, 0.08);
+  --wtd-edge-2: rgba(255, 255, 255, 0.16);
+  --wtd-accent: #818cf8;
+  --wtd-accent-2: #22d3ee;
+  --wtd-accent-soft: rgba(129, 140, 248, 0.13);
+  --wtd-accent-line: rgba(129, 140, 248, 0.32);
+  --wtd-accent-ink: #a5b4fc;
+  --wtd-ok: #34d399;
+  --wtd-ok-soft: rgba(52, 211, 153, 0.12);
+  --wtd-warn: #fbbf24;
+  --wtd-warn-soft: rgba(251, 191, 36, 0.12);
+  --wtd-bad: #fb7185;
+  --wtd-bad-soft: rgba(251, 113, 133, 0.12);
+  --wtd-violet: #a78bfa;
+  --wtd-violet-soft: rgba(167, 139, 250, 0.13);
+  --wtd-fuchsia: #e879f9;
+  --wtd-fuchsia-soft: rgba(232, 121, 249, 0.12);
+  --wtd-cyan: #67e8f9;
+  --wtd-cyan-soft: rgba(103, 232, 249, 0.12);
+  --wtd-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  --wtd-shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.5);
+  --wtd-glow: 0 0 22px rgba(129, 140, 248, 0.28);
+  --wtd-scroll: rgba(255, 255, 255, 0.22);
+  --wtd-sheen: rgba(255, 255, 255, 0.06);
+  color-scheme: dark;
+}
+
+@theme inline {
   --font-sans: "Inter Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* semantic color utilities: bg-app, bg-card, text-ink, border-edge … */
+  --color-app: var(--wtd-bg);
+  --color-app-soft: var(--wtd-bg-soft);
+  --color-card: var(--wtd-card);
+  --color-card-2: var(--wtd-card-2);
+  --color-card-3: var(--wtd-card-3);
+  --color-ink: var(--wtd-ink);
+  --color-ink-2: var(--wtd-ink-2);
+  --color-ink-3: var(--wtd-ink-3);
+  --color-ink-4: var(--wtd-ink-4);
+  --color-edge: var(--wtd-edge);
+  --color-edge-2: var(--wtd-edge-2);
+  --color-accent: var(--wtd-accent);
+  --color-accent-2: var(--wtd-accent-2);
+  --color-accent-ink: var(--wtd-accent-ink);
+  --color-ok: var(--wtd-ok);
+  --color-warn: var(--wtd-warn);
+  --color-bad: var(--wtd-bad);
+  --color-violet: var(--wtd-violet);
+  --color-fuchsia: var(--wtd-fuchsia);
+  --color-cyan: var(--wtd-cyan);
 
   --animate-pulse-soft: pulse-soft 2.8s ease-in-out infinite;
   --animate-float: float 8s ease-in-out infinite;
   --animate-spin-slow: spin 14s linear infinite;
   --animate-shimmer: shimmer 2.4s linear infinite;
-  --animate-scanline: scanline 2.2s ease-in-out infinite;
   --animate-breathe: breathe 3.6s ease-in-out infinite;
 }
 
@@ -24,15 +134,18 @@
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-@keyframes scanline {
-  0% { top: 2%; opacity: 0; }
-  15% { opacity: 1; }
-  85% { opacity: 1; }
-  100% { top: 98%; opacity: 0; }
-}
 @keyframes breathe {
   0%, 100% { transform: scale(1); opacity: 0.55; }
   50% { transform: scale(1.06); opacity: 0.9; }
+}
+@keyframes wtd-blink {
+  50% { opacity: 0; }
+}
+@keyframes wtd-flicker {
+  0%, 96%, 100% { opacity: 1; }
+  97% { opacity: 0.92; }
+  98% { opacity: 1; }
+  99% { opacity: 0.95; }
 }
 
 @layer base {
@@ -40,12 +153,16 @@
     height: 100%;
   }
   body {
-    @apply bg-slate-950 text-slate-100 antialiased overflow-hidden;
+    background: var(--wtd-bg);
+    color: var(--wtd-ink);
+    @apply antialiased overflow-hidden;
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+    transition: background 0.35s ease, color 0.35s ease;
   }
   ::selection {
-    @apply bg-indigo-400/30 text-white;
+    background: var(--wtd-accent-soft);
+    color: var(--wtd-accent-ink);
   }
   ::-webkit-scrollbar {
     width: 10px;
@@ -55,12 +172,14 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-white/10;
-    border: 2px solid transparent;
+    background: var(--wtd-scroll);
+    @apply rounded-full;
+    border: 3px solid transparent;
     background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-white/20;
+    background: var(--wtd-ink-4);
+    background-clip: padding-box;
   }
   input, textarea, select, button {
     font-family: inherit;
@@ -68,37 +187,111 @@
 }
 
 @layer components {
+  /* ---------- premium surfaces ---------- */
   .glass {
-    @apply rounded-2xl border border-white/[0.07] bg-white/[0.03] backdrop-blur-xl;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    background: var(--wtd-card);
+    border: 1px solid var(--wtd-edge);
+    @apply rounded-2xl backdrop-blur-xl;
+    box-shadow: var(--wtd-shadow);
   }
   .glass-hover {
-    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-white/15 hover:bg-white/[0.05];
+    @apply transition-all duration-300;
   }
+  .glass-hover:hover {
+    border-color: var(--wtd-edge-2);
+    background: var(--wtd-card-2);
+    transform: translateY(-2px);
+    box-shadow: var(--wtd-shadow-lg);
+  }
+  .panel {
+    background: var(--wtd-card);
+    border: 1px solid var(--wtd-edge);
+    @apply rounded-2xl;
+    box-shadow: var(--wtd-shadow);
+  }
+  .panel-sub {
+    background: var(--wtd-card-2);
+    border: 1px solid var(--wtd-edge);
+    @apply rounded-xl;
+  }
+  .inset {
+    background: var(--wtd-card-2);
+    border: 1px solid var(--wtd-edge);
+    @apply rounded-xl;
+  }
+
+  /* ---------- typography accents ---------- */
   .text-gradient {
-    @apply bg-gradient-to-r from-indigo-300 via-sky-300 to-cyan-300 bg-clip-text text-transparent;
+    background: linear-gradient(120deg, var(--wtd-accent) 10%, var(--wtd-accent-2) 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
+
+  /* ---------- buttons ---------- */
   .btn-gradient {
-    @apply bg-gradient-to-r from-indigo-500 to-cyan-400 text-white shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:brightness-110 hover:shadow-indigo-500/40 active:scale-[0.98];
+    color: #fff;
+    background: linear-gradient(135deg, var(--wtd-accent), var(--wtd-accent-2));
+    @apply transition-all duration-200;
+    box-shadow: 0 6px 18px var(--wtd-accent-soft), inset 0 1px 0 var(--wtd-sheen);
   }
-  .shimmer-bar {
-    background-image: linear-gradient(110deg, transparent 25%, rgba(129, 140, 248, 0.16) 50%, transparent 75%);
-    background-size: 200% 100%;
-    animation: var(--animate-shimmer);
+  .btn-gradient:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 10px 26px var(--wtd-accent-soft), inset 0 1px 0 var(--wtd-sheen);
   }
+  .btn-gradient:active {
+    transform: scale(0.98);
+  }
+  .btn-ghost {
+    background: var(--wtd-card-2);
+    border: 1px solid var(--wtd-edge);
+    color: var(--wtd-ink-2);
+  }
+  .btn-ghost:hover {
+    background: var(--wtd-card-3);
+    border-color: var(--wtd-edge-2);
+    color: var(--wtd-ink);
+  }
+
+  /* ---------- inputs ---------- */
+  .input {
+    background: var(--wtd-card-2);
+    border: 1px solid var(--wtd-edge);
+    color: var(--wtd-ink);
+    @apply rounded-xl transition-colors;
+  }
+  .input::placeholder {
+    color: var(--wtd-ink-4);
+  }
+  .input:focus-within,
+  .input:focus {
+    border-color: var(--wtd-accent-line);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--wtd-accent-soft);
+  }
+
+  /* ---------- decor ---------- */
   .dot-grid {
-    background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+    background-image: radial-gradient(var(--wtd-edge) 1px, transparent 1px);
     background-size: 26px 26px;
   }
   .focus-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/40;
+    @apply focus-visible:outline-none;
   }
-}
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px var(--wtd-accent-soft), 0 0 0 1px var(--wtd-accent-line);
+  }
+  .shimmer-bar {
+    background-image: linear-gradient(110deg, transparent 25%, var(--wtd-accent-soft) 50%, transparent 75%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
 
-/* ============================== v2.1: terminal + responsive ============================== */
-
-@layer components {
-  /* CRT scanlines for the hacker terminal */
+  /* ---------- CRT terminal (always dark) ---------- */
+  .crt {
+    background: #02060a;
+    color: #a7f3d0;
+  }
   .crt-scanlines {
     background: repeating-linear-gradient(
       0deg,
@@ -109,25 +302,20 @@
     );
     mix-blend-mode: multiply;
   }
-
-  /* blinking terminal cursor */
   .cursor-blink::after {
     content: "▋";
     margin-left: 2px;
     color: #34d399;
     animation: wtd-blink 0.53s steps(1) infinite;
   }
-
-  @keyframes wtd-blink {
-    50% {
-      opacity: 0;
-    }
+  .crt-flicker {
+    animation: wtd-flicker 6s infinite;
   }
 
-  /* slim scrollbars for explorer / terminal lists */
+  /* ---------- slim scrollbars ---------- */
   .scroll-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+    scrollbar-color: var(--wtd-scroll) transparent;
   }
   .scroll-thin::-webkit-scrollbar {
     width: 8px;
@@ -137,43 +325,33 @@
     background: transparent;
   }
   .scroll-thin::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.22);
+    background: var(--wtd-scroll);
     border-radius: 8px;
   }
   .scroll-thin::-webkit-scrollbar-thumb:hover {
-    background: rgba(148, 163, 184, 0.38);
-  }
-
-  /* subtle CRT flicker on the terminal container */
-  .crt-flicker {
-    animation: wtd-flicker 6s infinite;
-  }
-  @keyframes wtd-flicker {
-    0%, 96%, 100% {
-      opacity: 1;
-    }
-    97% {
-      opacity: 0.92;
-    }
-    98% {
-      opacity: 1;
-    }
-    99% {
-      opacity: 0.95;
-    }
+    background: var(--wtd-ink-4);
   }
 }
 
-@media (max-width: 640px) {
-  .crt-scanlines {
-    background: none;
-  }
-}
+/* ============================================================
+   Performance (v2.2): containment + virtualization hints
+   ============================================================ */
 
-/* respects reduced motion for the heavy effects */
+.perf-contain {
+  contain: paint;
+}
+.perf-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 34px;
+}
+.perf-row-lg {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 72px;
+}
 @media (prefers-reduced-motion: reduce) {
   .crt-flicker,
-  .cursor-blink::after {
+  .cursor-blink::after,
+  .shimmer-bar {
     animation: none;
   }
 }

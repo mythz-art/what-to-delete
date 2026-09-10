@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+use std::net::TcpListener;
 use std::sync::atomic::AtomicBool;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::types::{
-    AppSettings, FtpStats, JunkItem, LogEntry, TunnelStatus, TransferItem, VaultItem,
+    AppSettings, FtpStats, JunkItem, LogEntry, TaskInfo, TunnelStatus, TransferItem, VaultItem,
 };
 
 pub struct AppState {
@@ -17,6 +19,13 @@ pub struct AppState {
     pub vault_key: Mutex<Option<[u8; 32]>>,
     pub vault_items: Mutex<Vec<VaultItem>>,
     pub transfers: std::sync::Arc<Mutex<Vec<TransferItem>>>,
+    /* ---------------- v2.2 ---------------- */
+    /// per-task log ring buffers (task id -> lines) feeding the multi-tab terminal
+    pub task_logs: Mutex<HashMap<String, Vec<LogEntry>>>,
+    /// task registry driving terminal tabs (newest last)
+    pub tasks: Mutex<Vec<TaskInfo>>,
+    /// shared handle to the live FTP listener so ftp_stop can force-close it
+    pub ftp_listener: Mutex<Option<Arc<TcpListener>>>,
     pub http_port: Mutex<Option<u16>>,
     /* ---------------- v2.1 ---------------- */
     /// global log ring buffer feeding the hacker terminal
@@ -96,6 +105,9 @@ impl AppState {
             vault_items: Mutex::new(Vec::new()),
             transfers: std::sync::Arc::new(Mutex::new(Vec::new())),
             http_port: Mutex::new(None),
+            task_logs: Mutex::new(HashMap::new()),
+            tasks: Mutex::new(Vec::new()),
+            ftp_listener: Mutex::new(None),
             logs: Mutex::new(Vec::new()),
             hash_cache: Mutex::new(std::collections::HashMap::new()),
             active_task: Mutex::new(None),

@@ -40,7 +40,7 @@ export function FilesPage() {
     <PageShell>
       <div className="mb-5">
         <h1 className="text-2xl font-semibold tracking-tight">Files</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-ink-3">
           Browse, manage and hunt files — every drive, one workspace.
         </p>
       </div>
@@ -53,8 +53,8 @@ export function FilesPage() {
             onClick={() => setTab(t.id)}
             className={`relative flex items-center gap-2 rounded-xl border px-3.5 py-2 text-xs font-medium transition-all ${
               tab === t.id
-                ? "border-indigo-300/40 bg-indigo-400/15 text-white"
-                : "border-white/[0.07] bg-white/[0.03] text-slate-400 hover:border-white/15 hover:text-slate-200"
+                ? "border-indigo-300/40 bg-[var(--wtd-accent-soft)] text-white"
+                : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3 hover:border-[var(--wtd-edge-2)] hover:text-ink-2"
             }`}
           >
             <t.icon className="size-3.5" />
@@ -94,20 +94,20 @@ function FinderList({
     return <EmptyState icon={<FileSearch className="size-6" />} title={emptyTitle} description={emptyDesc} />;
   }
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-black/20">
+    <div className="overflow-hidden rounded-2xl border border-[var(--wtd-edge)] bg-black/20">
       {items.map((f, i) => (
         <div
           key={f.path}
-          className={`grid grid-cols-[minmax(0,1fr)_100px_130px_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.04] ${
-            i > 0 ? "border-t border-white/[0.05]" : ""
+          className={`grid grid-cols-[minmax(0,1fr)_100px_130px_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--wtd-card-2)] ${
+            i > 0 ? "border-t border-[var(--wtd-edge)]" : ""
           }`}
         >
           <div className="min-w-0">
-            <div className="truncate text-xs font-medium text-slate-200">{f.path.split("\\").pop()}</div>
-            <div className="truncate text-[10px] text-slate-600">{f.path}</div>
+            <div className="truncate text-xs font-medium text-ink-2">{f.path.split("\\").pop()}</div>
+            <div className="truncate text-[10px] text-ink-4">{f.path}</div>
           </div>
-          <span className="text-right text-xs font-semibold tabular-nums text-indigo-300">{formatBytes(f.bytes)}</span>
-          <span className="text-right text-[11px] tabular-nums text-slate-500">
+          <span className="text-right text-xs font-semibold tabular-nums text-[var(--wtd-accent-ink)]">{formatBytes(f.bytes)}</span>
+          <span className="text-right text-[11px] tabular-nums text-ink-3">
             {f.modified ? `${formatDate(f.modified)}${f.extra ? ` · ${f.extra}` : ""}` : f.extra || "—"}
           </span>
           {onRemove && (
@@ -208,7 +208,7 @@ function OldFilesTab() {
             <select
               value={days}
               onChange={(e) => setDays(Number(e.target.value))}
-              className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-slate-300 focus:outline-none"
+              className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-3 py-2 text-xs text-ink-2 focus:outline-none"
             >
               {[30, 60, 90, 180, 365].map((d) => (
                 <option key={d} value={d}>{d} days</option>
@@ -328,29 +328,29 @@ function AppsTab() {
       {apps.length === 0 ? (
         <EmptyState icon={<Package className="size-6" />} title="No apps found" />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-black/20">
+        <div className="overflow-hidden rounded-2xl border border-[var(--wtd-edge)] bg-black/20">
           {apps.map((a, i) => (
             <div
               key={a.name + i}
-              className={`grid grid-cols-[minmax(0,1fr)_110px_140px_36px] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.04] ${
-                i > 0 ? "border-t border-white/[0.05]" : ""
+              className={`grid grid-cols-[minmax(0,1fr)_110px_140px_36px] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--wtd-card-2)] ${
+                i > 0 ? "border-t border-[var(--wtd-edge)]" : ""
               }`}
             >
               <div className="min-w-0">
-                <div className="truncate text-xs font-medium text-slate-200">{a.name}</div>
-                <div className="truncate text-[10px] text-slate-600">
+                <div className="truncate text-xs font-medium text-ink-2">{a.name}</div>
+                <div className="truncate text-[10px] text-ink-4">
                   {a.publisher}
                   {a.installLocation ? ` · ${a.installLocation}` : ""}
                 </div>
               </div>
-              <span className="text-right text-xs font-semibold tabular-nums text-indigo-300">
+              <span className="text-right text-xs font-semibold tabular-nums text-[var(--wtd-accent-ink)]">
                 {a.bytes > 0 ? formatBytes(a.bytes) : "—"}
               </span>
-              <span className="text-right text-[11px] tabular-nums text-slate-500">{a.version || "—"}</span>
+              <span className="text-right text-[11px] tabular-nums text-ink-3">{a.version || "—"}</span>
               <button
                 onClick={() => a.installLocation && void api.filesOpen(a.installLocation)}
                 disabled={!a.installLocation}
-                className="justify-self-end rounded p-1.5 text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-200 disabled:opacity-30"
+                className="justify-self-end rounded p-1.5 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2 disabled:opacity-30"
                 title="Open install location"
               >
                 <HardDriveDownload className="size-4" />
@@ -429,13 +429,13 @@ function RecycleTab() {
           { label: "Items", value: stats ? stats.count.toLocaleString() : "—", icon: LayoutGrid },
           { label: "Reclaimable", value: stats ? formatBytes(stats.bytes) : "—", icon: Trash2 },
         ].map((c) => (
-          <div key={c.label} className="rounded-2xl border border-white/[0.07] bg-white/[0.02] p-5">
-            <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
+          <div key={c.label} className="rounded-2xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-5">
+            <div className="flex items-center gap-3 text-xs font-medium text-ink-3">
               <c.icon className="size-4" />
               {c.label}
             </div>
             <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">
-              {loading && !stats ? <Loader2 className="size-6 animate-spin text-indigo-300" /> : c.value}
+              {loading && !stats ? <Loader2 className="size-6 animate-spin text-[var(--wtd-accent-ink)]" /> : c.value}
             </div>
           </div>
         ))}

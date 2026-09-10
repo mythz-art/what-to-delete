@@ -166,11 +166,12 @@ struct ChildJob {
     files: u64,
 }
 
-pub fn scan(app: &tauri::AppHandle, state: &AppState) -> Result<ScanReport, String> {
+pub fn scan(app: &tauri::AppHandle, state: &AppState, task_id: &str) -> Result<ScanReport, String> {
     use crate::logs;
     let started = std::time::Instant::now();
     state.scan_cancel.store(false, Ordering::Relaxed);
-    logs::info(app, "SCAN", "junk sweep initiated — acquiring targets");
+    logs::t_info(app, task_id, "SCAN", "junk sweep initiated — acquiring targets");
+    logs::t_dim(app, task_id, "SCAN", format!("pid {} · workers {} · rules v2", std::process::id(), rayon::current_num_threads()));
 
     let exclude: Vec<String> = state
         .settings
@@ -187,10 +188,13 @@ pub fn scan(app: &tauri::AppHandle, state: &AppState) -> Result<ScanReport, Stri
 
     for cat in CATEGORIES {
         if state.scan_cancel.load(Ordering::Relaxed) {
-            logs::warn(app, "SCAN", "cancelled by operator");
+            logs::t_warn(app, task_id, "SCAN", "cancelled by operator");
             return Err("cancelled".into());
         }
-        logs::dim(app, "SCAN", format!("sector {} :: {}", cat.id, cat.name));
+        logs::t_info(app, task_id, "SCAN", format!("sector {} :: {} — {}", cat.id, cat.name, cat.description));
+        let mut cat_bytes: u64 = 0;
+        let mut cat_files: u64 = 0;
+        let mut cat_items: u64 = 0;
         for &(env, sub) in cat.roots {
             let Some(root) = expand_root(env, sub) else {
                 continue;
@@ -252,6 +256,9 @@ pub fn scan(app: &tauri::AppHandle, state: &AppState) -> Result<ScanReport, Stri
                     let bytes = item.bytes;
                     found_bytes += bytes;
                     found_files += job.files;
+                    cat_bytes += bytes;
+                    cat_files += job.files;
+                    cat_items += 1;
                     if all_items.len() < 900 {
                         all_items.push(item);
                     }
@@ -275,6 +282,28 @@ pub fn scan(app: &tauri::AppHandle, state: &AppState) -> Result<ScanReport, Stri
                     );
                 }
             }
+        }
+        // per-category verdict: process + result detail for the task log
+        if cat_items > 0 {
+            let mb = cat_bytes as f64 / (1024.0 * 1024.0);
+            logs::t_ok(
+                app,
+                task_id,
+                "SCAN",
+                format!(
+                    "sector {} complete :: {} items · {} · {} files",
+                    cat.id,
+                    cat_items,
+                    if cat_bytes > 1024 * 1024 * 1024 {
+                        format!("{:.2} GB", mb / 1024.0)
+                    } else {
+                        format!("{:.1} MB", mb)
+                    },
+                    cat_files
+                ),
+            );
+        } else {
+            logs::t_dim(app, task_id, "SCAN", format!("sector {} clean — nothing reclaimable", cat.id));
         }
     }
 
@@ -324,19 +353,58 @@ pub fn scan(app: &tauri::AppHandle, state: &AppState) -> Result<ScanReport, Stri
         duration_ms: started.elapsed().as_millis() as u64,
     };
 
-    *state.scan_session.lock().unwrap() = all_items;
+    *state.scan_session.lock().unwrap() = all_items.clone();
     *state.last_scan_at.lock().unwrap() = Some(now_ms());
-    logs::ok(
+
+    // detailed result block for the task log
+    let mut top = all_items.clone();
+    top.sort_by(|a, b| b.bytes.cmp(&a.bytes));
+    for (i, item) in top.iter().take(5).enumerate() {
+        logs::t_dim(
+            app,
+            task_id,
+            "SCAN",
+            format!(
+                "top {} :: {} — {}",
+                i + 1,
+                item.path,
+                if item.bytes > 1024 * 1024 * 1024 {
+                    format!("{:.2} GB", item.bytes as f64 / (1024.0 * 1024.0 * 1024.0))
+                } else {
+                    format!("{:.1} MB", item.bytes as f64 / (1024.0 * 1024.0))
+                }
+            ),
+        );
+    }
+    let secs = report.duration_ms as f64 / 1000.0;
+    logs::t_ok(
         app,
+        task_id,
         "SCAN",
         format!(
-            "sweep complete :: {} bytes reclaimable across {} files in {} ms",
-            found_bytes,
+            "sweep complete :: {} reclaimable across {} files in {:.1}s — {} categories hit",
+            format_bytes(found_bytes),
             found_files,
-            report.duration_ms
+            secs,
+            report.categories.len()
         ),
     );
     Ok(report)
+}
+
+fn format_bytes(n: u64) -> String {
+    const UNITS: [&str; 5] = ["B", "KB", "MB", "GB", "TB"];
+    let mut val = n as f64;
+    let mut unit = 0usize;
+    while val >= 1024.0 && unit < UNITS.len() - 1 {
+        val /= 1024.0;
+        unit += 1;
+    }
+    if unit == 0 {
+        format!("{n} B")
+    } else {
+        format!("{val:.1} {}", UNITS[unit])
+    }
 }
 
 /// delete one path, optionally via the Recycle Bin

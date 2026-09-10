@@ -148,6 +148,24 @@ export interface LogEntry {
   level: LogLevel;
   tag: string;
   msg: string;
+  /** owning task id — set when the line belongs to a tracked task */
+  task?: string;
+}
+
+/* ============================== v2.2 additions ============================== */
+
+export type TaskKind = "scan" | "dedup" | "clean" | "tool" | "transfer" | "vault";
+export type TaskState = "running" | "done" | "error" | "cancelled";
+
+/** One tab in the multi-tab terminal: a tracked unit of work with its own log stream. */
+export interface TaskInfo {
+  id: string;
+  kind: TaskKind | string;
+  title: string;
+  state: TaskState | string;
+  startedAt: number;
+  endedAt?: number | null;
+  summary?: string | null;
 }
 
 export interface FtpStats {

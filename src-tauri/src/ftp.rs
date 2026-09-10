@@ -8,6 +8,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
+use std::sync::Arc;
 
 use tauri::{Emitter, Manager};
 
@@ -23,12 +24,50 @@ pub struct FtpConfig {
 }
 
 /// Start the FTP server. Returns the bound port.
+///
+/// v2.2 fix: the previous stop only flipped a flag — the accept loop stayed
+/// blocked in `accept()` holding the port, so a restart failed with
+/// "address already in use". Now `ftp_stop` force-closes the listener
+/// (non-blocking flip + loopback knock), and start waits for the OS to
+/// actually release the port before binding again.
 pub fn ftp_start(app: &tauri::AppHandle, state: &AppState, cfg: FtpConfig) -> Result<u16, String> {
     use crate::logs;
-    ftp_stop(state);
+    ftp_stop(app, state);
 
-    let listener = TcpListener::bind(("0.0.0.0", cfg.port)).map_err(|e| e.to_string())?;
+    // wait for the old listener to be released by the accept thread
+    for _ in 0..20 {
+        let still_bound = state.ftp_listener.lock().unwrap().is_some();
+        if !still_bound {
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(50));
+    }
+
+    // bind with a short retry window (port release is async in edge cases)
+    let mut listener = None;
+    let mut last_err = String::new();
+    for attempt in 0..4 {
+        match TcpListener::bind(("0.0.0.0", cfg.port)) {
+            Ok(l) => {
+                listener = Some(l);
+                break;
+            }
+            Err(e) => {
+                last_err = e.to_string();
+                if attempt == 0 {
+                    logs::warn(app, "FTP", format!("port {} busy — retrying: {e}", cfg.port));
+                }
+                std::thread::sleep(std::time::Duration::from_millis(300));
+            }
+        }
+    }
+    let listener = listener.ok_or_else(|| format!("cannot bind port {} — is another FTP server running? ({last_err})", cfg.port))?;
     let port = listener.local_addr().map_err(|e| e.to_string())?.port();
+    let listener = Arc::new(listener);
+
+    // register the handle BEFORE spawning the accept loop so a fast
+    // ftp_stop can always find and close it
+    *state.ftp_listener.lock().unwrap() = Some(listener.clone());
 
     {
         let mut f = state.ftp.lock().unwrap();
@@ -41,6 +80,7 @@ pub fn ftp_start(app: &tauri::AppHandle, state: &AppState, cfg: FtpConfig) -> Re
         f.bytes_out = 0;
         f.bytes_in = 0;
     }
+    emit_status(app, state);
 
     let root = cfg.root.clone();
     let anonymous = cfg.anonymous;
@@ -49,17 +89,20 @@ pub fn ftp_start(app: &tauri::AppHandle, state: &AppState, cfg: FtpConfig) -> Re
 
     // accept loop thread
     let app2 = app.clone();
+    let listener2 = listener.clone();
     std::thread::spawn(move || {
-        let sessions: std::sync::Arc<std::sync::atomic::AtomicU64> =
-            std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
-        for stream in listener.incoming() {
+        let sessions: Arc<std::sync::atomic::AtomicU64> =
+            Arc::new(std::sync::atomic::AtomicU64::new(0));
+        for stream in listener2.incoming() {
             let Ok(stream) = stream else { break };
-            // stop flag check: if no longer running, drop the listener
-            if let Some(state) = app2.try_state::<AppState>() {
-                let running = state.ftp.lock().unwrap().running;
-                if !running {
-                    break;
-                }
+            // stop flag check: if no longer running, drop the wake-up knock
+            // connection and exit the loop (releases the port)
+            let running = app2
+                .try_state::<AppState>()
+                .map(|s| s.ftp.lock().unwrap().running)
+                .unwrap_or(false);
+            if !running {
+                break;
             }
             let Ok(peer) = stream.peer_addr() else { continue };
             let sid = sessions.fetch_add(1, Ordering::Relaxed) + 1;
@@ -78,14 +121,29 @@ pub fn ftp_start(app: &tauri::AppHandle, state: &AppState, cfg: FtpConfig) -> Re
                     f.sessions_total += 1;
                     f.sessions_active += 1;
                 }
+                emit_status(&app3, state.inner());
                 crate::logs::info(&app3, "FTP", format!("session #{sid} opened from {peer}"));
                 let _ = handle_session(&app3, state.inner(), stream, &cfg2, sid, peer.to_string());
                 {
                     let mut f = state.ftp.lock().unwrap();
                     f.sessions_active = f.sessions_active.saturating_sub(1);
                 }
+                emit_status(&app3, state.inner());
                 crate::logs::dim(&app3, "FTP", format!("session #{sid} closed"));
             });
+        }
+        // loop ended (stop or error): detach our handle and free the port
+        if let Some(state) = app2.try_state::<AppState>() {
+            let mut l = state.ftp_listener.lock().unwrap();
+            // only clear if it is still OUR listener (a new server may have
+            // already replaced it after the wait window above)
+            if l
+                .as_ref()
+                .map(|cur| Arc::ptr_eq(cur, &listener2))
+                .unwrap_or(false)
+            {
+                *l = None;
+            }
         }
     });
 
@@ -95,9 +153,40 @@ pub fn ftp_start(app: &tauri::AppHandle, state: &AppState, cfg: FtpConfig) -> Re
     Ok(port)
 }
 
-pub fn ftp_stop(state: &AppState) {
-    let mut f = state.ftp.lock().unwrap();
-    f.running = false;
+/// Broadcast the current FTP stats so the UI reacts instantly.
+fn emit_status(app: &tauri::AppHandle, state: &AppState) {
+    let snap = state.ftp.lock().unwrap().clone();
+    let _ = app.emit("ftp://status", snap);
+}
+
+/// v2.2 fix: actually KILL the server, not just flip a flag.
+/// 1. mark stopped  2. flip the listener to non-blocking (wakes accept)
+/// 3. knock on the port (wakes blocking accepts on Windows)
+/// The accept thread then exits and drops the socket, releasing the port.
+pub fn ftp_stop(app: &tauri::AppHandle, state: &AppState) {
+    use crate::logs;
+    let (was_running, port) = {
+        let mut f = state.ftp.lock().unwrap();
+        let was = f.running;
+        f.running = false;
+        (was, f.port)
+    };
+
+    let listener = state.ftp_listener.lock().unwrap().take();
+    if let Some(l) = &listener {
+        // wake the blocked accept(): WSAEWOULDBLOCK breaks the incoming() loop
+        let _ = l.set_nonblocking(true);
+        // belt & braces: a loopback connect also unblocks accept on Windows
+        if port > 0 {
+            let _ = TcpStream::connect(("127.0.0.1", port))
+                .and_then(|s| s.shutdown(std::net::Shutdown::Both));
+        }
+    }
+
+    if was_running {
+        logs::warn(app, "FTP", "server stopped — listener closed, port released");
+    }
+    emit_status(app, state);
 }
 
 pub fn ftp_status(state: &AppState) -> FtpStats {
@@ -231,6 +320,11 @@ fn handle_session(
         let mut line = String::new();
         if reader.read_line(&mut line)? == 0 {
             break; // client closed
+        }
+        // server stopped under us? end the session gracefully
+        if !state.ftp.lock().unwrap().running {
+            let _ = write_line(&mut control, "421 Server shutting down");
+            break;
         }
         let line = line.trim_end_matches(['\r', '\n']);
         let mut parts = line.splitn(2, ' ');

@@ -14,6 +14,7 @@ import type {
   ScanProgress,
   ScanReport,
   SystemStatus,
+  TaskInfo,
   ToolInfo,
   ToolResult,
   TransferItem,
@@ -52,6 +53,15 @@ export interface Api {
   // logs / hacker terminal
   onLogLine(cb: (l: LogEntry) => void): () => void;
   getLogBuffer(limit?: number): Promise<LogEntry[]>;
+
+  // v2.2: multi-task terminal
+  getTasks(): Promise<TaskInfo[]>;
+  getTaskBuffer(taskId: string, limit?: number): Promise<LogEntry[]>;
+  onTaskUpdate(cb: (t: TaskInfo) => void): () => void;
+  onTaskLog(taskId: string, cb: (l: LogEntry) => void): () => void;
+
+  // v2.2: live FTP status push
+  onFtpStatus(cb: (s: FtpStats) => void): () => void;
 
   // share: http + ftp + public tunnel
   shareHttpStart(port: number): Promise<{ url: string }>;
@@ -162,6 +172,14 @@ function createRealApi(): Api {
 
     onLogLine: (cb) => makeListener<LogEntry>("log://line", cb),
     getLogBuffer: (limit) => invoke<LogEntry[]>("get_log_buffer", { limit }),
+
+    getTasks: () => invoke<TaskInfo[]>("get_tasks"),
+    getTaskBuffer: (taskId, limit) =>
+      invoke<LogEntry[]>("get_task_buffer", { taskId, limit }),
+    onTaskUpdate: (cb) => makeListener<TaskInfo>("task://update", cb),
+    onTaskLog: (taskId, cb) => makeListener<LogEntry>(`log://task/${taskId}`, cb),
+
+    onFtpStatus: (cb) => makeListener<FtpStats>("ftp://status", cb),
 
     shareHttpStart: (port) => invoke<{ url: string }>("share_http_start", { port }),
     shareHttpStop: () => invoke<void>("share_http_stop"),

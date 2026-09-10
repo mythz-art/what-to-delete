@@ -36,8 +36,8 @@ function DriveCard({ drive, delay, onOpen }: { drive: DriveInfo; delay: number; 
           <div className="flex items-center gap-4">
             <div className="relative">
               {/* stack motif */}
-              <div className="absolute -left-1.5 -top-1.5 size-11 rotate-[-8deg] rounded-xl border border-white/10" />
-              <div className="absolute -left-1 -top-1 size-11 rotate-[-4deg] rounded-xl border border-white/15 bg-white/[0.02]" />
+              <div className="absolute -left-1.5 -top-1.5 size-11 rotate-[-8deg] rounded-xl border border-[var(--wtd-edge)]" />
+              <div className="absolute -left-1 -top-1 size-11 rotate-[-4deg] rounded-xl border border-[var(--wtd-edge-2)] bg-[var(--wtd-card-2)]" />
               <div
                 className={`relative grid size-11 place-items-center rounded-xl bg-gradient-to-br ${DRIVE_ACCENT[drive.kind]} shadow-lg shadow-black/40`}
               >
@@ -47,7 +47,7 @@ function DriveCard({ drive, delay, onOpen }: { drive: DriveInfo; delay: number; 
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-base font-semibold tracking-tight">{drive.letter}</span>
-                <span className="text-sm text-slate-400">{drive.label}</span>
+                <span className="text-sm text-ink-3">{drive.label}</span>
               </div>
               <div className="mt-1 flex items-center gap-1.5">
                 <Badge tone={drive.kind === "nvme" ? "cyan" : "slate"}>{drive.kind.toUpperCase()}</Badge>
@@ -55,23 +55,23 @@ function DriveCard({ drive, delay, onOpen }: { drive: DriveInfo; delay: number; 
               </div>
             </div>
           </div>
-          <span className="text-sm font-semibold tabular-nums text-slate-200">{pct}%</span>
+          <span className="text-sm font-semibold tabular-nums text-ink-2">{pct}%</span>
         </div>
         <div className="mt-5">
           <GaugeBar percent={pct} danger={pct > 85} />
-          <div className="mt-2.5 flex justify-between text-[11px] text-slate-500">
+          <div className="mt-2.5 flex justify-between text-[11px] text-ink-3">
             <span>
-              <span className="font-medium tabular-nums text-slate-300">{formatBytes(drive.usedBytes)}</span> used
+              <span className="font-medium tabular-nums text-ink-2">{formatBytes(drive.usedBytes)}</span> used
             </span>
             <span>
-              <span className="font-medium tabular-nums text-slate-300">{formatBytes(free)}</span> free
+              <span className="font-medium tabular-nums text-ink-2">{formatBytes(free)}</span> free
             </span>
           </div>
         </div>
       </button>
       <button
         onClick={onOpen}
-        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.07] bg-white/[0.02] py-1.5 text-[11px] font-medium text-slate-400 transition-all hover:border-indigo-300/30 hover:bg-indigo-400/10 hover:text-indigo-200"
+        className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] py-1.5 text-[11px] font-medium text-ink-3 transition-all hover:border-[var(--wtd-accent-line)] hover:bg-[var(--wtd-accent-soft)] hover:text-[var(--wtd-accent-ink)]"
       >
         <FolderOpen className="size-3.5" />
         Open in File Manager
@@ -98,9 +98,9 @@ function StatTile({
   tone?: "indigo" | "cyan" | "violet";
 }) {
   const tones = {
-    indigo: "text-indigo-300 bg-indigo-400/10 border-indigo-300/20",
-    cyan: "text-cyan-300 bg-cyan-400/10 border-cyan-300/20",
-    violet: "text-violet-300 bg-violet-400/10 border-violet-300/20",
+    indigo: "text-[var(--wtd-accent-ink)] bg-[var(--wtd-accent-soft)] border-[var(--wtd-accent-line)]",
+    cyan: "text-[var(--wtd-cyan)] bg-[var(--wtd-cyan-soft)] border-[var(--wtd-cyan-soft)]",
+    violet: "text-[var(--wtd-violet)] bg-[var(--wtd-violet-soft)] border-[var(--wtd-violet-soft)]",
   };
   return (
     <GlassCard hover delay={delay} className="flex-1 p-5">
@@ -108,12 +108,12 @@ function StatTile({
         <div className={`grid size-9 place-items-center rounded-xl border ${tones[tone]}`}>
           <Icon className="size-4.5" style={{ width: 18, height: 18 }} />
         </div>
-        <span className="text-[12px] font-medium text-slate-400">{label}</span>
+        <span className="text-[12px] font-medium text-ink-3">{label}</span>
       </div>
       <div className="mt-4 text-[28px] font-semibold tracking-tight">
         <AnimatedNumber value={value} format={format} />
       </div>
-      <div className="mt-1 text-[11px] leading-relaxed text-slate-500">{hint}</div>
+      <div className="mt-1 text-[11px] leading-relaxed text-ink-3">{hint}</div>
     </GlassCard>
   );
 }
@@ -162,7 +162,7 @@ export function DashboardPage() {
             <h1 className="mt-3 text-xl font-semibold leading-snug tracking-tight">
               {health > 80 ? "Your disks are in great shape" : health > 55 ? "Room to breathe" : "Time for a cleanup"}
             </h1>
-            <p className="mt-2 max-w-[260px] text-[13px] leading-relaxed text-slate-400 max-xl:mx-auto">
+            <p className="mt-2 max-w-[260px] text-[13px] leading-relaxed text-ink-3 max-xl:mx-auto">
               {formatBytes(reclaimable)} of reclaimable space detected across your drives. One scan away
               from a lighter machine.
             </p>
@@ -176,7 +176,7 @@ export function DashboardPage() {
               </button>
               <button
                 onClick={() => navigate("duplicates")}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-slate-200 transition-colors hover:border-white/20 hover:bg-white/10 focus-ring"
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 text-sm font-medium text-ink-2 transition-colors hover:border-[var(--wtd-edge-2)] hover:bg-[var(--wtd-card-3)] focus-ring"
               >
                 <Files className="size-4" />
                 Duplicates
@@ -241,9 +241,9 @@ export function DashboardPage() {
                 navigate(a.page, a.ctx ?? undefined);
               }
             }}
-            className="flex items-center gap-2.5 rounded-xl border border-white/[0.07] bg-white/[0.02] px-4 py-3 text-xs font-medium text-slate-300 transition-all hover:border-indigo-300/30 hover:bg-indigo-400/10 hover:text-white"
+            className="flex items-center gap-2.5 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-3 text-xs font-medium text-ink-2 transition-all hover:border-[var(--wtd-accent-line)] hover:bg-[var(--wtd-accent-soft)] hover:text-ink"
           >
-            <a.icon className="size-4 text-indigo-300" />
+            <a.icon className="size-4 text-[var(--wtd-accent-ink)]" />
             {a.label}
           </button>
         ))}
@@ -266,7 +266,7 @@ export function DashboardPage() {
       {/* insights */}
       <div className="mt-8">
         <SectionHeader title="Insights" subtitle="What is eating your space right now" />
-        <GlassCard delay={0.1} className="divide-y divide-white/[0.05]">
+        <GlassCard delay={0.1} className="divide-y divide-[var(--wtd-edge)]">
           {INSIGHTS.map((ins, i) => (
             <motion.button
               key={ins.title}
@@ -274,17 +274,17 @@ export function DashboardPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 + i * 0.06, duration: 0.35 }}
               onClick={() => navigate("cleanup", { category: ins.category })}
-              className="group flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.03]"
+              className="group flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[var(--wtd-card-2)]"
             >
-              <div className="grid size-9 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-slate-400 group-hover:text-indigo-300">
+              <div className="grid size-9 shrink-0 place-items-center rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3 group-hover:text-[var(--wtd-accent-ink)]">
                 <Sparkles className="size-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-slate-200">{ins.title}</div>
-                <div className="text-xs text-slate-500">{ins.desc}</div>
+                <div className="text-sm font-medium text-ink-2">{ins.title}</div>
+                <div className="text-xs text-ink-3">{ins.desc}</div>
               </div>
-              <span className="text-sm font-semibold tabular-nums text-slate-300">{formatBytes(ins.bytes)}</span>
-              <ChevronRight className="size-4 text-slate-600 transition-transform group-hover:translate-x-1 group-hover:text-slate-300" />
+              <span className="text-sm font-semibold tabular-nums text-ink-2">{formatBytes(ins.bytes)}</span>
+              <ChevronRight className="size-4 text-ink-4 transition-transform group-hover:translate-x-1 group-hover:text-ink-2" />
             </motion.button>
           ))}
         </GlassCard>
@@ -297,8 +297,8 @@ export function DashboardPage() {
         transition={{ delay: 0.4 }}
         className="mt-8 flex items-center gap-3 rounded-xl border border-emerald-400/15 bg-emerald-400/[0.04] px-4 py-3"
       >
-        <ShieldCheck className="size-4.5 shrink-0 text-emerald-400" style={{ width: 18, height: 18 }} />
-        <p className="text-xs leading-relaxed text-slate-400">
+        <ShieldCheck className="size-4.5 shrink-0 text-[var(--wtd-ok)]" style={{ width: 18, height: 18 }} />
+        <p className="text-xs leading-relaxed text-ink-3">
           Safety guard active — every deletion asks first, and system-critical files are always excluded.
         </p>
       </motion.div>

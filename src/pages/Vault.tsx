@@ -56,24 +56,24 @@ export function VaultPage() {
               <motion.div
                 animate={{ rotate: [0, -4, 4, 0] }}
                 transition={{ duration: 5, repeat: Infinity }}
-                className="grid size-16 place-items-center rounded-3xl border border-indigo-300/25 bg-gradient-to-br from-indigo-500/20 to-cyan-400/10 text-indigo-300"
+                className="grid size-16 place-items-center rounded-3xl border border-[var(--wtd-accent-line)] bg-gradient-to-br from-indigo-500/20 to-cyan-400/10 text-[var(--wtd-accent-ink)]"
               >
                 <Lock className="size-7" />
               </motion.div>
               <div className="mt-5 text-lg font-semibold tracking-tight">The Vault</div>
-              <p className="mt-1.5 text-center text-[13px] leading-relaxed text-slate-500">
+              <p className="mt-1.5 text-center text-[13px] leading-relaxed text-ink-3">
                 Encrypted storage for files that matter. Enter the passphrase to decrypt.
               </p>
               <div className="mt-6 w-full">
                 <div className="relative">
-                  <KeyRound className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-600" />
+                  <KeyRound className="absolute left-4 top-1/2 size-4 -translate-y-1/2 text-ink-4" />
                   <input
                     type="password"
                     value={pass}
                     onChange={(e) => setPass(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && tryUnlock()}
                     placeholder="Passphrase"
-                    className="w-full rounded-xl border border-white/10 bg-white/[0.03] py-2.5 pl-11 pr-4 text-sm focus:border-indigo-300/40 focus-ring"
+                    className="w-full rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] py-2.5 pl-11 pr-4 text-sm focus:border-[var(--wtd-accent-line)] focus-ring"
                   />
                 </div>
                 <Button
@@ -130,12 +130,12 @@ export function VaultPage() {
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-600" />
+          <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-4" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search sealed files…"
-            className="w-full rounded-xl border border-white/[0.08] bg-white/[0.02] py-2.5 pl-10 pr-4 text-sm placeholder:text-slate-600 focus-ring"
+            className="w-full rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] py-2.5 pl-10 pr-4 text-sm placeholder:text-ink-4 focus-ring"
           />
         </div>
         <Button variant="primary" icon={<Plus className="size-4" />} onClick={addFiles}>
@@ -160,30 +160,30 @@ export function VaultPage() {
                 style={{ background: "radial-gradient(240px 120px at 100% 0%, rgba(99,102,241,0.12), transparent 70%)" }}
               />
               <div className="flex items-start justify-between">
-                <div className="grid size-11 place-items-center rounded-xl border border-indigo-300/25 bg-indigo-400/10 text-indigo-300">
+                <div className="grid size-11 place-items-center rounded-xl border border-[var(--wtd-accent-line)] bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]">
                   <FileLock2 className="size-5" />
                 </div>
                 <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
                     onClick={() => pushToast({ kind: "success", title: "Restored to original path", message: item.name })}
-                    className="grid size-7 place-items-center rounded-lg text-slate-500 hover:bg-white/10 hover:text-cyan-300"
+                    className="grid size-7 place-items-center rounded-lg text-ink-3 hover:bg-[var(--wtd-card-3)] hover:text-[var(--wtd-cyan)]"
                     title="Restore"
                   >
                     <RotateCcw className="size-3.5" />
                   </button>
                   <button
                     onClick={() => setConfirmRemove(item)}
-                    className="grid size-7 place-items-center rounded-lg text-slate-500 hover:bg-rose-400/10 hover:text-rose-300"
+                    className="grid size-7 place-items-center rounded-lg text-ink-3 hover:bg-[var(--wtd-bad-soft)] hover:text-[var(--wtd-bad)]"
                     title="Remove"
                   >
                     <Trash2 className="size-3.5" />
                   </button>
                 </div>
               </div>
-              <div className="relative mt-4 min-w-0 truncate font-mono text-[13px] text-slate-200">
+              <div className="relative mt-4 min-w-0 truncate font-mono text-[13px] text-ink-2">
                 {item.name}
               </div>
-              <div className="relative mt-1.5 flex items-center justify-between text-[11px] text-slate-500">
+              <div className="relative mt-1.5 flex items-center justify-between text-[11px] text-ink-3">
                 <span className="tabular-nums">{formatBytes(item.bytes)}</span>
                 <span>{timeAgo(item.addedAt)}</span>
               </div>
@@ -192,31 +192,31 @@ export function VaultPage() {
         </AnimatePresence>
 
         {filtered.length === 0 && (
-          <div className="col-span-full rounded-2xl border border-dashed border-white/10 px-6 py-14 text-center">
-            <Lock className="mx-auto size-6 text-slate-700" />
-            <div className="mt-3 text-sm text-slate-500">Nothing sealed yet</div>
+          <div className="col-span-full rounded-2xl border border-dashed border-[var(--wtd-edge)] px-6 py-14 text-center">
+            <Lock className="mx-auto size-6 text-ink-4" />
+            <div className="mt-3 text-sm text-ink-3">Nothing sealed yet</div>
           </div>
         )}
       </div>
 
       <div className="mt-8 flex items-center gap-3 rounded-xl border border-indigo-300/15 bg-indigo-400/[0.04] px-4 py-3">
-        <ShieldCheck className="size-4.5 shrink-0 text-indigo-300" style={{ width: 18, height: 18 }} />
-        <p className="text-xs leading-relaxed text-slate-400">
+        <ShieldCheck className="size-4.5 shrink-0 text-[var(--wtd-accent-ink)]" style={{ width: 18, height: 18 }} />
+        <p className="text-xs leading-relaxed text-ink-3">
           Vault contents live encrypted at{" "}
-          <span className="font-mono text-slate-300">%APPDATA%\WhatToDelete\vault.bin</span> — even with disk
+          <span className="font-mono text-ink-2">%APPDATA%\WhatToDelete\vault.bin</span> — even with disk
           access, files stay sealed without your passphrase.
         </p>
       </div>
 
       <Modal open={confirmRemove !== null} onClose={() => setConfirmRemove(null)} width="max-w-sm">
         <div className="flex items-start gap-4">
-          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-rose-400/30 bg-rose-400/10">
-            <Trash2 className="size-5 text-rose-300" />
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[var(--wtd-bad-soft)] bg-[var(--wtd-bad-soft)]">
+            <Trash2 className="size-5 text-[var(--wtd-bad)]" />
           </div>
           <div>
             <div className="text-base font-semibold">Unseal and remove?</div>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-400">
-              <span className="font-mono text-slate-200">{confirmRemove?.name}</span> will be decrypted back
+            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">
+              <span className="font-mono text-ink-2">{confirmRemove?.name}</span> will be decrypted back
               to its original path ({formatBytes(confirmRemove?.bytes ?? 0)}).
             </p>
           </div>

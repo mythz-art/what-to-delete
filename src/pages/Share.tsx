@@ -50,10 +50,10 @@ function CopyButton({ text }: { text: string }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1400);
       }}
-      className="grid size-8 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-400 transition-colors hover:text-slate-100 focus-ring"
+      className="grid size-8 place-items-center rounded-lg border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3 transition-colors hover:text-ink focus-ring"
       title="Copy"
     >
-      {copied ? <Check className="size-4 text-emerald-400" /> : <Copy className="size-4" />}
+      {copied ? <Check className="size-4 text-[var(--wtd-ok)]" /> : <Copy className="size-4" />}
     </button>
   );
 }
@@ -212,7 +212,7 @@ export function SharePage() {
   return (
     <PageShell>
       {/* tabs */}
-      <div className="flex items-center gap-1.5 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-1.5 backdrop-blur-xl">
+      <div className="flex items-center gap-1.5 rounded-2xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-1.5 backdrop-blur-xl">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -221,17 +221,17 @@ export function SharePage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`relative flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors focus-ring ${
-                active ? "text-white" : "text-slate-400 hover:text-slate-200"
+                active ? "text-white" : "text-ink-3 hover:text-ink-2"
               }`}
             >
               {active && (
                 <motion.span
                   layoutId="share-tab"
                   transition={{ type: "spring", stiffness: 400, damping: 32 }}
-                  className="absolute inset-0 rounded-xl border border-indigo-300/25 bg-gradient-to-r from-indigo-500/20 to-cyan-400/10"
+                  className="absolute inset-0 rounded-xl border border-[var(--wtd-accent-line)] bg-gradient-to-r from-indigo-500/20 to-cyan-400/10"
                 />
               )}
-              <Icon className={`relative z-10 size-4 ${active ? "text-indigo-300" : ""}`} />
+              <Icon className={`relative z-10 size-4 ${active ? "text-[var(--wtd-accent-ink)]" : ""}`} />
               <span className="relative z-10">{t.label}</span>
             </button>
           );
@@ -253,7 +253,7 @@ export function SharePage() {
                 <GlassCard className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="grid size-9 place-items-center rounded-xl border border-indigo-300/25 bg-indigo-400/10 text-indigo-300">
+                      <div className="grid size-9 place-items-center rounded-xl border border-[var(--wtd-accent-line)] bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]">
                         <Upload className="size-4" />
                       </div>
                       <span className="text-sm font-semibold">Send</span>
@@ -264,21 +264,21 @@ export function SharePage() {
                     {MOCK_FILES.map((f) => (
                       <div
                         key={f.name}
-                        className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2"
+                        className="flex items-center justify-between rounded-lg border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-3 py-2"
                       >
-                        <span className="min-w-0 truncate font-mono text-[11px] text-slate-300">{f.name}</span>
-                        <span className="ml-3 shrink-0 text-[11px] tabular-nums text-slate-500">
+                        <span className="min-w-0 truncate font-mono text-[11px] text-ink-2">{f.name}</span>
+                        <span className="ml-3 shrink-0 text-[11px] tabular-nums text-ink-3">
                           {formatBytes(f.bytes)}
                         </span>
                       </div>
                     ))}
                   </div>
                   <div className="mt-5 flex items-center gap-3">
-                    <div className="flex-1 rounded-xl border border-indigo-300/25 bg-indigo-400/[0.08] px-4 py-2.5 text-center">
-                      <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-indigo-300/70">
+                    <div className="flex-1 rounded-xl border border-[var(--wtd-accent-line)] bg-indigo-400/[0.08] px-4 py-2.5 text-center">
+                      <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-[var(--wtd-accent-ink)]/70">
                         Pairing code
                       </div>
-                      <div className="mt-0.5 font-mono text-xl font-bold tracking-[0.3em] text-indigo-200">
+                      <div className="mt-0.5 font-mono text-xl font-bold tracking-[0.3em] text-[var(--wtd-accent-ink)]">
                         {code}
                       </div>
                     </div>
@@ -290,13 +290,13 @@ export function SharePage() {
 
                 <GlassCard delay={0.08} className="p-6">
                   <div className="flex items-center gap-3">
-                    <div className="grid size-9 place-items-center rounded-xl border border-cyan-300/25 bg-cyan-400/10 text-cyan-300">
+                    <div className="grid size-9 place-items-center rounded-xl border border-[var(--wtd-cyan-soft)] bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]">
                       <Download className="size-4" />
                     </div>
                     <span className="text-sm font-semibold">Receive</span>
                     {connected && <Badge tone="emerald">Connected</Badge>}
                   </div>
-                  <p className="mt-4 text-[13px] leading-relaxed text-slate-400">
+                  <p className="mt-4 text-[13px] leading-relaxed text-ink-3">
                     Enter the 6-digit code shown on the sender's device. Transfers are end-to-end encrypted
                     and never leave your local network.
                   </p>
@@ -305,7 +305,7 @@ export function SharePage() {
                       value={recvCode}
                       onChange={(e) => setRecvCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       placeholder="000000"
-                      className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-center font-mono text-xl tracking-[0.3em] text-slate-100 placeholder:text-slate-600 focus:border-cyan-300/40 focus-ring"
+                      className="flex-1 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 text-center font-mono text-xl tracking-[0.3em] text-ink placeholder:text-ink-4 focus:border-[var(--wtd-accent-line)] focus-ring"
                     />
                     <Button variant="primary" onClick={connectPeer} disabled={recvCode.length !== 6}>
                       Connect
@@ -317,9 +317,9 @@ export function SharePage() {
                       { label: "Latency", value: "2 ms" },
                       { label: "Discovery", value: "mDNS" },
                     ].map((s) => (
-                      <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] py-2.5">
-                        <div className="text-sm font-semibold text-slate-200">{s.value}</div>
-                        <div className="text-[10px] uppercase tracking-wide text-slate-500">{s.label}</div>
+                      <div key={s.label} className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] py-2.5">
+                        <div className="text-sm font-semibold text-ink-2">{s.value}</div>
+                        <div className="text-[10px] uppercase tracking-wide text-ink-3">{s.label}</div>
                       </div>
                     ))}
                   </div>
@@ -336,8 +336,8 @@ export function SharePage() {
                       animate={httpUrl ? { boxShadow: "0 0 24px rgba(52,211,153,0.35)" } : {}}
                       className={`grid size-12 place-items-center rounded-2xl border ${
                         httpUrl
-                          ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-300"
-                          : "border-white/10 bg-white/[0.04] text-slate-500"
+                          ? "border-[var(--wtd-ok-soft)] bg-[var(--wtd-ok-soft)] text-[var(--wtd-ok)]"
+                          : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3"
                       }`}
                     >
                       <Server className="size-5" />
@@ -346,7 +346,7 @@ export function SharePage() {
                       <div className="text-base font-semibold">
                         {httpUrl ? "Serving files on your LAN" : "HTTP file server"}
                       </div>
-                      <div className="mt-0.5 text-[13px] text-slate-500">
+                      <div className="mt-0.5 text-[13px] text-ink-3">
                         {httpUrl
                           ? "Anyone on your network can browse and download"
                           : "Start a lightweight server to share files with any browser"}
@@ -371,9 +371,9 @@ export function SharePage() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-6 flex items-center gap-3 rounded-xl border border-emerald-300/20 bg-emerald-400/[0.05] px-4 py-3">
-                        <Link2 className="size-4 shrink-0 text-emerald-300" />
-                        <span className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-200">
+                      <div className="mt-6 flex items-center gap-3 rounded-xl border border-[var(--wtd-ok-soft)] bg-emerald-400/[0.05] px-4 py-3">
+                        <Link2 className="size-4 shrink-0 text-[var(--wtd-ok)]" />
+                        <span className="min-w-0 flex-1 truncate font-mono text-sm text-[var(--wtd-ok)]">
                           {httpUrl}
                         </span>
                         <CopyButton text={httpUrl} />
@@ -384,10 +384,10 @@ export function SharePage() {
                           { icon: Download, label: "Downloads", value: "17" },
                           { icon: Upload, label: "Bytes out", value: "12.6 GB" },
                         ].map((s) => (
-                          <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                            <s.icon className="size-4 text-slate-500" />
+                          <div key={s.label} className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-4">
+                            <s.icon className="size-4 text-ink-3" />
                             <div className="mt-2 text-lg font-semibold tabular-nums">{s.value}</div>
-                            <div className="text-[11px] text-slate-500">{s.label}</div>
+                            <div className="text-[11px] text-ink-3">{s.label}</div>
                           </div>
                         ))}
                       </div>
@@ -415,8 +415,8 @@ export function SharePage() {
                       animate={ftpStats?.running ? { boxShadow: "0 0 24px rgba(56,189,248,0.35)" } : {}}
                       className={`grid size-12 place-items-center rounded-2xl border ${
                         ftpStats?.running
-                          ? "border-sky-300/30 bg-sky-400/10 text-sky-300"
-                          : "border-white/10 bg-white/[0.04] text-slate-500"
+                          ? "border-[var(--wtd-cyan-soft)] bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]"
+                          : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3"
                       }`}
                     >
                       <CloudUpload className="size-5" />
@@ -425,7 +425,7 @@ export function SharePage() {
                       <div className="text-base font-semibold">
                         {ftpStats?.running ? "FTP server live" : "FTP file server"}
                       </div>
-                      <div className="mt-0.5 text-[13px] text-slate-500">
+                      <div className="mt-0.5 text-[13px] text-ink-3">
                         {ftpStats?.running
                           ? "Windows Explorer, FileZilla or any FTP client can connect"
                           : "Full FTP server with uploads, downloads and folder management"}
@@ -450,9 +450,9 @@ export function SharePage() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-6 flex items-center gap-3 rounded-xl border border-sky-300/20 bg-sky-400/[0.05] px-4 py-3">
-                        <Link2 className="size-4 shrink-0 text-sky-300" />
-                        <span className="min-w-0 flex-1 truncate font-mono text-sm text-sky-200">
+                      <div className="mt-6 flex items-center gap-3 rounded-xl border border-[var(--wtd-cyan-soft)] bg-sky-400/[0.05] px-4 py-3">
+                        <Link2 className="size-4 shrink-0 text-[var(--wtd-cyan)]" />
+                        <span className="min-w-0 flex-1 truncate font-mono text-sm text-[var(--wtd-cyan)]">
                           ftp://{ftpStats.anonymous ? "anonymous" : ftpAccUser}@{ftpStats.root ? "" : ""}
                           {ftpStats.port}
                         </span>
@@ -465,15 +465,15 @@ export function SharePage() {
                           { label: "Sent", value: formatBytes(ftpStats.bytesOut) },
                           { label: "Received", value: formatBytes(ftpStats.bytesIn) },
                         ].map((s) => (
-                          <div key={s.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+                          <div key={s.label} className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-4">
                             <div className="text-lg font-semibold tabular-nums">{s.value}</div>
-                            <div className="text-[11px] text-slate-500">{s.label}</div>
+                            <div className="text-[11px] text-ink-3">{s.label}</div>
                           </div>
                         ))}
                       </div>
-                      <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[11px] text-slate-500">
-                        <FolderOpen className="size-3.5 shrink-0 text-sky-300" />
-                        Serving from: <span className="truncate font-mono text-slate-400">{ftpStats.root}</span>
+                      <div className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-3 text-[11px] text-ink-3">
+                        <FolderOpen className="size-3.5 shrink-0 text-[var(--wtd-cyan)]" />
+                        Serving from: <span className="truncate font-mono text-ink-3">{ftpStats.root}</span>
                       </div>
                     </motion.div>
                   )}
@@ -481,27 +481,27 @@ export function SharePage() {
 
                 <div className="mt-6 grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-slate-400">Port</label>
+                    <label className="mb-1.5 block text-xs font-medium text-ink-3">Port</label>
                     <input
                       type="number"
                       value={ftpPort}
                       onChange={(e) => setFtpPort(Number(e.target.value) || 2121)}
                       disabled={ftpStats?.running}
-                      className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm tabular-nums focus:border-sky-300/40 focus-ring disabled:opacity-50"
+                      className="w-full rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 text-sm tabular-nums focus:border-[var(--wtd-accent-line)] focus-ring disabled:opacity-50"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-medium text-slate-400">Mode</label>
-                    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5">
+                    <label className="mb-1.5 block text-xs font-medium text-ink-3">Mode</label>
+                    <div className="flex items-center gap-2 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5">
                       <button
                         onClick={() => setFtpAnonymous(true)}
-                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${ftpAnonymous ? "bg-sky-400/20 text-sky-200" : "text-slate-500 hover:text-slate-300"}`}
+                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${ftpAnonymous ? "bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]" : "text-ink-3 hover:text-ink-2"}`}
                       >
                         Anonymous
                       </button>
                       <button
                         onClick={() => setFtpAnonymous(false)}
-                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${!ftpAnonymous ? "bg-sky-400/20 text-sky-200" : "text-slate-500 hover:text-slate-300"}`}
+                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${!ftpAnonymous ? "bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]" : "text-ink-3 hover:text-ink-2"}`}
                       >
                         Credentials
                       </button>
@@ -510,31 +510,31 @@ export function SharePage() {
                   {!ftpAnonymous && (
                     <>
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-400">Username</label>
+                        <label className="mb-1.5 block text-xs font-medium text-ink-3">Username</label>
                         <input
                           value={ftpAccUser}
                           onChange={(e) => setFtpAccUser(e.target.value)}
                           disabled={ftpStats?.running}
-                          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm focus:border-sky-300/40 focus-ring disabled:opacity-50"
+                          className="w-full rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 text-sm focus:border-[var(--wtd-accent-line)] focus-ring disabled:opacity-50"
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-xs font-medium text-slate-400">Password</label>
+                        <label className="mb-1.5 block text-xs font-medium text-ink-3">Password</label>
                         <input
                           type="password"
                           value={ftpAccPass}
                           onChange={(e) => setFtpAccPass(e.target.value)}
                           disabled={ftpStats?.running}
                           placeholder="empty = any password"
-                          className="w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm focus:border-sky-300/40 focus-ring disabled:opacity-50"
+                          className="w-full rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 text-sm focus:border-[var(--wtd-accent-line)] focus-ring disabled:opacity-50"
                         />
                       </div>
                     </>
                   )}
                 </div>
-                <div className="mt-4 rounded-xl border border-sky-300/15 bg-sky-400/[0.04] px-4 py-3 text-[11px] leading-relaxed text-slate-400">
-                  <span className="font-medium text-sky-300">How to connect:</span> in Windows Explorer type
-                  <span className="mx-1 rounded bg-black/40 px-1.5 py-0.5 font-mono text-[10px] text-sky-200">ftp://your-ip:{ftpPort}</span>
+                <div className="mt-4 rounded-xl border border-sky-300/15 bg-sky-400/[0.04] px-4 py-3 text-[11px] leading-relaxed text-ink-3">
+                  <span className="font-medium text-[var(--wtd-cyan)]">How to connect:</span> in Windows Explorer type
+                  <span className="mx-1 rounded bg-black/40 px-1.5 py-0.5 font-mono text-[10px] text-[var(--wtd-cyan)]">ftp://your-ip:{ftpPort}</span>
                   in the address bar, or use FileZilla. Shared folder = the app's share directory.
                 </div>
               </GlassCard>
@@ -556,10 +556,10 @@ export function SharePage() {
                         }
                         className={`grid size-12 place-items-center rounded-2xl border ${
                           tunnel?.state === "active"
-                            ? "border-emerald-300/30 bg-emerald-400/10 text-emerald-300"
+                            ? "border-[var(--wtd-ok-soft)] bg-[var(--wtd-ok-soft)] text-[var(--wtd-ok)]"
                             : tunnel?.state === "starting"
-                              ? "border-sky-300/30 bg-sky-400/10 text-sky-300"
-                              : "border-white/10 bg-white/[0.04] text-slate-500"
+                              ? "border-[var(--wtd-cyan-soft)] bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]"
+                              : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3"
                         }`}
                       >
                         <Globe className="size-5" />
@@ -575,7 +575,7 @@ export function SharePage() {
                           )}
                           {tunnel?.state === "error" && <Badge tone="rose">error</Badge>}
                         </div>
-                        <div className="mt-0.5 text-[13px] text-slate-500">
+                        <div className="mt-0.5 text-[13px] text-ink-3">
                           {tunnel?.state === "active"
                             ? "Your HTTP server is reachable from anywhere on the internet"
                             : "Expose your LAN HTTP server through a free public tunnel"}
@@ -600,26 +600,26 @@ export function SharePage() {
                         exit={{ opacity: 0, height: 0 }}
                         className="overflow-hidden"
                       >
-                        <div className="mt-6 flex items-center gap-3 rounded-xl border border-emerald-300/25 bg-emerald-400/[0.06] px-4 py-3.5">
-                          <Zap className="size-4 shrink-0 animate-pulse text-emerald-300" />
-                          <span className="min-w-0 flex-1 truncate font-mono text-sm text-emerald-200">
+                        <div className="mt-6 flex items-center gap-3 rounded-xl border border-[var(--wtd-ok-soft)] bg-emerald-400/[0.06] px-4 py-3.5">
+                          <Zap className="size-4 shrink-0 animate-pulse text-[var(--wtd-ok)]" />
+                          <span className="min-w-0 flex-1 truncate font-mono text-sm text-[var(--wtd-ok)]">
                             {tunnel.publicUrl}
                           </span>
                           <CopyButton text={tunnel.publicUrl} />
                         </div>
-                        <div className="mt-2 text-[11px] text-slate-500">{tunnel.detail}</div>
+                        <div className="mt-2 text-[11px] text-ink-3">{tunnel.detail}</div>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
                   {tunnel?.state === "error" && (
-                    <div className="mt-4 rounded-xl border border-rose-400/25 bg-rose-500/[0.08] px-4 py-3 text-[11px] leading-relaxed text-rose-200">
+                    <div className="mt-4 rounded-xl border border-[var(--wtd-bad-soft)] bg-rose-500/[0.08] px-4 py-3 text-[11px] leading-relaxed text-[var(--wtd-bad)]">
                       {tunnel.detail}
                     </div>
                   )}
 
                   <div className="mt-6 grid gap-2.5">
-                    <label className="mb-0.5 block text-xs font-medium text-slate-400">Tunnel method</label>
+                    <label className="mb-0.5 block text-xs font-medium text-ink-3">Tunnel method</label>
                     {[
                       {
                         id: "localhostrun",
@@ -643,21 +643,21 @@ export function SharePage() {
                         disabled={tunnel?.state === "active" || tunnel?.state === "starting"}
                         className={`rounded-xl border p-4 text-left transition-all disabled:opacity-60 ${
                           tunnelMethod === m.id
-                            ? "border-indigo-300/40 bg-indigo-400/10"
-                            : "border-white/[0.07] bg-white/[0.02] hover:border-white/15"
+                            ? "border-indigo-300/40 bg-[var(--wtd-accent-soft)]"
+                            : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] hover:border-[var(--wtd-edge-2)]"
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <div
                             className={`grid size-4 place-items-center rounded-full border ${
-                              tunnelMethod === m.id ? "border-indigo-300 bg-indigo-400/30" : "border-white/20"
+                              tunnelMethod === m.id ? "border-indigo-300 bg-indigo-400/30" : "border-[var(--wtd-edge-2)]"
                             }`}
                           >
                             {tunnelMethod === m.id && <div className="size-1.5 rounded-full bg-indigo-200" />}
                           </div>
-                          <span className="text-sm font-medium text-slate-200">{m.title}</span>
+                          <span className="text-sm font-medium text-ink-2">{m.title}</span>
                         </div>
-                        <div className="mt-1 pl-6 text-[11px] text-slate-500">{m.desc}</div>
+                        <div className="mt-1 pl-6 text-[11px] text-ink-3">{m.desc}</div>
                       </button>
                     ))}
                     {tunnelMethod === "custom" && (
@@ -665,13 +665,13 @@ export function SharePage() {
                         value={customUrl}
                         onChange={(e) => setCustomUrl(e.target.value)}
                         placeholder="https://your-domain.tunnel.dev"
-                        className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 font-mono text-xs text-slate-200 placeholder:text-slate-600 focus:border-indigo-300/40 focus-ring"
+                        className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 font-mono text-xs text-ink-2 placeholder:text-ink-4 focus:border-[var(--wtd-accent-line)] focus-ring"
                       />
                     )}
                   </div>
 
-                  <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-[11px] leading-relaxed text-slate-500">
-                    <Server className="mt-0.5 size-4 shrink-0 text-slate-400" />
+                  <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-3 text-[11px] leading-relaxed text-ink-3">
+                    <Server className="mt-0.5 size-4 shrink-0 text-ink-3" />
                     The tunnel forwards to your local HTTP server. Start it on the HTTP tab first —
                     the tunnel reuses its port automatically. Anyone with the public link can
                     download your shared files from anywhere.
@@ -685,14 +685,14 @@ export function SharePage() {
               <GlassCard className="p-7">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="relative grid size-12 place-items-center rounded-2xl border border-fuchsia-300/25 bg-fuchsia-400/10 text-fuchsia-300">
+                    <div className="relative grid size-12 place-items-center rounded-2xl border border-[var(--wtd-fuchsia-soft)] bg-[var(--wtd-fuchsia-soft)] text-[var(--wtd-fuchsia)]">
                       <Magnet className="size-5" />
                     </div>
                     <div>
                       <div className="text-base font-semibold">BitTorrent</div>
-                      <div className="mt-0.5 flex items-center gap-2 text-[13px] text-slate-500">
+                      <div className="mt-0.5 flex items-center gap-2 text-[13px] text-ink-3">
                         DHT + magnet links
-                        <Badge tone="fuchsia" className="border-fuchsia-300/25 bg-fuchsia-400/10 text-fuchsia-300">
+                        <Badge tone="fuchsia" className="border-[var(--wtd-fuchsia-soft)] bg-[var(--wtd-fuchsia-soft)] text-[var(--wtd-fuchsia)]">
                           Experimental
                         </Badge>
                       </div>
@@ -704,7 +704,7 @@ export function SharePage() {
                     value={magnet}
                     onChange={(e) => setMagnet(e.target.value)}
                     placeholder="magnet:?xt=urn:btih:…"
-                    className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 font-mono text-xs text-slate-200 placeholder:text-slate-600 focus:border-fuchsia-300/40 focus-ring"
+                    className="min-w-0 flex-1 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-2.5 font-mono text-xs text-ink-2 placeholder:text-ink-4 focus:border-[var(--wtd-accent-line)] focus-ring"
                   />
                   <Button variant="primary" onClick={addMagnet}>
                     Add
@@ -719,13 +719,13 @@ export function SharePage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
+                        className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-4"
                       >
                         <div className="flex items-center justify-between">
-                          <span className="min-w-0 truncate font-mono text-xs text-slate-300">{m.name}</span>
+                          <span className="min-w-0 truncate font-mono text-xs text-ink-2">{m.name}</span>
                           <button
                             onClick={() => setMagnets((prev) => prev.filter((x) => x.id !== m.id))}
-                            className="text-slate-600 hover:text-rose-300"
+                            className="text-ink-4 hover:text-[var(--wtd-bad)]"
                           >
                             <X className="size-4" />
                           </button>
@@ -733,7 +733,7 @@ export function SharePage() {
                         <div className="mt-3">
                           <GaugeBar percent={64} className="h-1.5" />
                         </div>
-                        <div className="mt-2 flex justify-between text-[11px] tabular-nums text-slate-500">
+                        <div className="mt-2 flex justify-between text-[11px] tabular-nums text-ink-3">
                           <span>64% · 12 seeds · 4 peers</span>
                           <span>↓ 4.2 MB/s</span>
                         </div>
@@ -741,7 +741,7 @@ export function SharePage() {
                     ))}
                   </AnimatePresence>
                   {magnets.length === 0 && (
-                    <p className="rounded-xl border border-dashed border-white/10 px-4 py-8 text-center text-xs text-slate-600">
+                    <p className="rounded-xl border border-dashed border-[var(--wtd-edge)] px-4 py-8 text-center text-xs text-ink-4">
                       No magnets queued. Paste a magnet link to begin.
                     </p>
                   )}
@@ -763,9 +763,9 @@ export function SharePage() {
             ) : undefined
           }
         />
-        <GlassCard delay={0.1} className="divide-y divide-white/[0.05]">
+        <GlassCard delay={0.1} className="divide-y divide-[var(--wtd-edge)]">
           {transfers.length === 0 && (
-            <div className="px-5 py-10 text-center text-sm text-slate-600">
+            <div className="px-5 py-10 text-center text-sm text-ink-4">
               No transfers yet — start one from any tab above.
             </div>
           )}
@@ -782,8 +782,8 @@ export function SharePage() {
                 <div
                   className={`grid size-9 shrink-0 place-items-center rounded-xl border ${
                     t.state === "done"
-                      ? "border-emerald-300/25 bg-emerald-400/10 text-emerald-300"
-                      : "border-indigo-300/25 bg-indigo-400/10 text-indigo-300"
+                      ? "border-[var(--wtd-ok-soft)] bg-[var(--wtd-ok-soft)] text-[var(--wtd-ok)]"
+                      : "border-[var(--wtd-accent-line)] bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]"
                   }`}
                 >
                   {t.mode === "p2p" ? (
@@ -796,8 +796,8 @@ export function SharePage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
-                    <span className="min-w-0 truncate font-mono text-[12px] text-slate-300">{t.name}</span>
-                    <span className="shrink-0 text-[11px] tabular-nums text-slate-500">
+                    <span className="min-w-0 truncate font-mono text-[12px] text-ink-2">{t.name}</span>
+                    <span className="shrink-0 text-[11px] tabular-nums text-ink-3">
                       {t.state === "active" ? formatSpeed(t.speed) : ""}
                     </span>
                   </div>
@@ -807,7 +807,7 @@ export function SharePage() {
                       className="h-1"
                       danger={t.state === "error"}
                     />
-                    <span className="w-24 shrink-0 text-right text-[11px] tabular-nums text-slate-500">
+                    <span className="w-24 shrink-0 text-right text-[11px] tabular-nums text-ink-3">
                       {formatBytes(t.transferred)} / {formatBytes(t.bytes, 0)}
                     </span>
                   </div>
@@ -817,7 +817,7 @@ export function SharePage() {
                 ) : (
                   <button
                     onClick={() => api.cancelTransfer(t.id)}
-                    className="grid size-7 place-items-center rounded-lg text-slate-600 transition-colors hover:bg-rose-400/10 hover:text-rose-300"
+                    className="grid size-7 place-items-center rounded-lg text-ink-4 transition-colors hover:bg-[var(--wtd-bad-soft)] hover:text-[var(--wtd-bad)]"
                   >
                     <X className="size-3.5" />
                   </button>

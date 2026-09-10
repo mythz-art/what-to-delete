@@ -127,7 +127,7 @@ export function CleanupPage() {
             <div className="text-3xl font-semibold tabular-nums tracking-tight">
               {cleaning ? "···" : <AnimatedNumber value={pct} format={(n) => `${Math.round(n)}%`} />}
             </div>
-            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-3">
               {cleaning ? "Deleting" : "Scanning"}
             </div>
           </ProgressRing>
@@ -137,14 +137,14 @@ export function CleanupPage() {
             <FileGridPulse cells={28} />
             <div className="mt-6">
               <div className="mb-2 flex items-end justify-between">
-                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500">
+                <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-ink-3">
                   {cleaning ? "Removing" : "Now scanning"}
                 </span>
-                <span className="font-mono text-xs tabular-nums text-slate-500">
+                <span className="font-mono text-xs tabular-nums text-ink-3">
                   {formatCount(progress?.processed ?? 0)} / {formatCount(progress?.total ?? 0)} files
                 </span>
               </div>
-              <div className="h-9 overflow-hidden rounded-lg border border-white/[0.06] bg-black/30 px-3 py-2">
+              <div className="h-9 overflow-hidden rounded-lg border border-[var(--wtd-edge)] bg-black/30 px-3 py-2">
                 <AnimatePresence mode="popLayout">
                   <motion.div
                     key={progress?.currentPath ?? "none"}
@@ -152,23 +152,23 @@ export function CleanupPage() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: -14, opacity: 0 }}
                     transition={{ duration: 0.12 }}
-                    className="truncate font-mono text-[11px] text-indigo-300/80"
+                    className="truncate font-mono text-[11px] text-[var(--wtd-accent-ink)]/80"
                   >
                     {progress?.currentPath || "…"}
                   </motion.div>
                 </AnimatePresence>
               </div>
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-slate-400">
+                <div className="text-sm text-ink-3">
                   {cleaning ? "Freeing" : "Junk found"}:{" "}
-                  <span className="font-semibold text-slate-100">
+                  <span className="font-semibold text-ink">
                     <AnimatedNumber
                       value={progress?.foundBytes ?? 0}
                       format={(n) => formatBytes(Math.max(0, n))}
                     />
                   </span>
                 </div>
-                <span className="text-sm tabular-nums text-slate-400">
+                <span className="text-sm tabular-nums text-ink-3">
                   {formatCount(progress?.foundFiles ?? 0)} junk files
                 </span>
               </div>
@@ -207,7 +207,7 @@ export function CleanupPage() {
           <h1 className="mt-6 text-2xl font-semibold tracking-tight">
             <AnimatedNumber value={freed} format={(n) => formatBytes(n)} /> freed
           </h1>
-          <p className="mt-2 max-w-sm text-center text-sm leading-relaxed text-slate-400">
+          <p className="mt-2 max-w-sm text-center text-sm leading-relaxed text-ink-3">
             Your disk just got lighter. Windows may take a moment to reflect the new free space.
           </p>
           <div className="mt-7 flex gap-3">
@@ -250,7 +250,7 @@ export function CleanupPage() {
               <h1 className="mt-4 text-[26px] font-semibold leading-tight tracking-tight">
                 Find every byte you don't need
               </h1>
-              <p className="mt-3 text-sm leading-relaxed text-slate-400">
+              <p className="mt-3 text-sm leading-relaxed text-ink-3">
                 Sweeps temp folders, browser caches, update leftovers, logs and crash dumps across all
                 drives — with USN journal acceleration. Nothing is deleted until you approve it.
               </p>
@@ -258,8 +258,8 @@ export function CleanupPage() {
                 <Button variant="primary" icon={<Sparkles className="size-4" />} onClick={startScan}>
                   Analyze disk
                 </Button>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <ShieldCheck className="size-3.5 text-emerald-400" />
+                <div className="flex items-center gap-1.5 text-xs text-ink-3">
+                  <ShieldCheck className="size-3.5 text-[var(--wtd-ok)]" />
                   Read-only pass
                 </div>
               </div>
@@ -273,10 +273,10 @@ export function CleanupPage() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.15 + i * 0.07 }}
-                    className="flex items-center justify-between rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-1.5 text-[11px] text-slate-400"
+                    className="flex items-center justify-between rounded-lg border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-3 py-1.5 text-[11px] text-ink-3"
                   >
                     <span>{c} files</span>
-                    <span className="tabular-nums text-slate-500">· · ·</span>
+                    <span className="tabular-nums text-ink-3">· · ·</span>
                   </motion.div>
                 ))}
               </div>
@@ -294,7 +294,7 @@ export function CleanupPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Scan results</h1>
-          <p className="mt-1 text-[13px] text-slate-500">
+          <p className="mt-1 text-[13px] text-ink-3">
             {formatBytes(report.totalBytes)} of junk in {formatCount(report.totalFiles)} files ·
             finished in {formatDuration(report.durationMs)}
           </p>
@@ -313,13 +313,13 @@ export function CleanupPage() {
             <GlassCard key={cat.id} delay={0.04 * idx} className="overflow-hidden">
               <button
                 onClick={() => setOpenCategory(open ? null : cat.id)}
-                className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-white/[0.02]"
+                className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[var(--wtd-card-2)]"
               >
                 <div
                   className={`grid size-10 shrink-0 place-items-center rounded-xl border text-[11px] font-bold tracking-wide ${
                     cat.risky
-                      ? "border-amber-300/25 bg-amber-400/10 text-amber-300"
-                      : "border-indigo-300/25 bg-indigo-400/10 text-indigo-300"
+                      ? "border-[var(--wtd-warn-soft)] bg-[var(--wtd-warn-soft)] text-[var(--wtd-warn)]"
+                      : "border-[var(--wtd-accent-line)] bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]"
                   }`}
                 >
                   {CATEGORY_ICONS[cat.id]?.slice(0, 3).toUpperCase()}
@@ -334,11 +334,11 @@ export function CleanupPage() {
                       </Badge>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500">{cat.description}</div>
+                  <div className="text-xs text-ink-3">{cat.description}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-semibold tabular-nums">{formatBytes(cat.bytes)}</div>
-                  <div className="text-[11px] tabular-nums text-slate-500">{cat.fileCount} files</div>
+                  <div className="text-[11px] tabular-nums text-ink-3">{cat.fileCount} files</div>
                 </div>
                 <div className="ml-2 flex items-center gap-3">
                   <label
@@ -354,18 +354,18 @@ export function CleanupPage() {
                     <div
                       className={`size-5 rounded-md border transition-all duration-150 peer-checked:border-transparent peer-checked:bg-gradient-to-br peer-checked:from-indigo-500 peer-checked:to-cyan-400 ${
                         catSelected.length > 0 && catSelected.length < catItems.length
-                          ? "border-indigo-300/60 bg-indigo-400/20"
-                          : "border-white/20 bg-white/[0.04]"
+                          ? "border-indigo-300/60 bg-[var(--wtd-accent-soft)]"
+                          : "border-[var(--wtd-edge-2)] bg-[var(--wtd-card-2)]"
                       }`}
                     />
                     {catSelected.length > 0 && catSelected.length < catItems.length && (
-                      <div className="absolute inset-0 grid place-items-center text-[10px] font-bold text-indigo-200">
+                      <div className="absolute inset-0 grid place-items-center text-[10px] font-bold text-[var(--wtd-accent-ink)]">
                         {catSelected.length}
                       </div>
                     )}
                   </label>
                   <ChevronDown
-                    className={`size-4 text-slate-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+                    className={`size-4 text-ink-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
                   />
                 </div>
               </button>
@@ -379,13 +379,13 @@ export function CleanupPage() {
                     transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                     className="overflow-hidden"
                   >
-                    <div className="max-h-64 overflow-y-auto border-t border-white/[0.05] px-5 py-3">
+                    <div className="max-h-64 overflow-y-auto border-t border-[var(--wtd-edge)] px-5 py-3">
                       {catItems.map((item) => {
                         const on = selected.has(item.id);
                         return (
                           <label
                             key={item.id}
-                            className="group flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-white/[0.03]"
+                            className="group flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 hover:bg-[var(--wtd-card-2)]"
                           >
                             <input
                               type="checkbox"
@@ -395,13 +395,13 @@ export function CleanupPage() {
                             />
                             <div
                               className={`size-4 shrink-0 rounded-[5px] border transition-all duration-150 peer-checked:border-transparent peer-checked:bg-gradient-to-br peer-checked:from-indigo-500 peer-checked:to-cyan-400 ${
-                                on ? "border-transparent" : "border-white/20 bg-white/[0.04]"
+                                on ? "border-transparent" : "border-[var(--wtd-edge-2)] bg-[var(--wtd-card-2)]"
                               }`}
                             />
-                            <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-slate-400 group-hover:text-slate-300">
+                            <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-ink-3 group-hover:text-ink-2">
                               {item.path}
                             </span>
-                            <span className="shrink-0 text-xs tabular-nums text-slate-500">
+                            <span className="shrink-0 text-xs tabular-nums text-ink-3">
                               {formatBytes(item.bytes)}
                             </span>
                           </label>
@@ -434,11 +434,11 @@ export function CleanupPage() {
                 <div className="text-lg font-semibold tabular-nums tracking-tight">
                   {formatBytes(selectedBytes)}
                 </div>
-                <div className="text-[11px] text-slate-500">
+                <div className="text-[11px] text-ink-3">
                   {formatCount(selected.size)} files selected
                 </div>
               </div>
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-8 w-px bg-[var(--wtd-card-3)]" />
               <Button variant="ghost" onClick={() => setSelected(new Set())}>
                 Clear
               </Button>
@@ -457,13 +457,13 @@ export function CleanupPage() {
       {/* confirm dialog */}
       <Modal open={confirmOpen} onClose={() => setConfirmOpen(false)} width="max-w-sm">
         <div className="flex items-start gap-4">
-          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-rose-400/30 bg-rose-400/10">
-            <Trash2 className="size-5 text-rose-300" />
+          <div className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[var(--wtd-bad-soft)] bg-[var(--wtd-bad-soft)]">
+            <Trash2 className="size-5 text-[var(--wtd-bad)]" />
           </div>
           <div>
             <div className="text-base font-semibold">Delete {formatCount(selected.size)} files?</div>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-400">
-              This frees <span className="font-semibold text-slate-200">{formatBytes(selectedBytes)}</span>.
+            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">
+              This frees <span className="font-semibold text-ink-2">{formatBytes(selectedBytes)}</span>.
               Files go to the Recycle Bin first, so you can still undo.
             </p>
           </div>

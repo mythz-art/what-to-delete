@@ -82,8 +82,8 @@ export function FeedbackModal() {
             </motion.div>
             <div>
               <div className="text-lg font-semibold text-gradient">Secret accepted</div>
-              <div className="mt-1 text-sm text-slate-400">
-                A hidden <span className="text-indigo-300">Vault</span> has been unlocked in your sidebar.
+              <div className="mt-1 text-sm text-ink-3">
+                A hidden <span className="text-[var(--wtd-accent-ink)]">Vault</span> has been unlocked in your sidebar.
               </div>
             </div>
             <button
@@ -98,12 +98,12 @@ export function FeedbackModal() {
               <KeyRound className="size-4" />
               Open the Vault
             </button>
-            <PartyPopper className="size-5 text-slate-500" />
+            <PartyPopper className="size-5 text-ink-3" />
           </motion.div>
         ) : (
           <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className="mb-1 text-lg font-semibold tracking-tight">Send feedback</div>
-            <p className="mb-5 text-[13px] leading-relaxed text-slate-500">
+            <p className="mb-5 text-[13px] leading-relaxed text-ink-3">
               Tell us what works, what breaks, or what you dream about. Every message is read.
             </p>
 
@@ -117,11 +117,11 @@ export function FeedbackModal() {
                     onClick={() => setRating(r.id)}
                     className={`flex flex-1 flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-[11px] font-medium transition-all duration-200 focus-ring ${
                       active
-                        ? "border-indigo-300/40 bg-indigo-400/10 text-indigo-200"
-                        : "border-white/[0.08] bg-white/[0.02] text-slate-500 hover:border-white/15 hover:text-slate-300"
+                        ? "border-indigo-300/40 bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]"
+                        : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-3 hover:border-[var(--wtd-edge-2)] hover:text-ink-2"
                     }`}
                   >
-                    <Icon className={`size-4 ${active ? "text-indigo-300" : ""}`} />
+                    <Icon className={`size-4 ${active ? "text-[var(--wtd-accent-ink)]" : ""}`} />
                     {r.label}
                   </button>
                 );
@@ -133,11 +133,11 @@ export function FeedbackModal() {
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               placeholder="Type your thoughts…"
-              className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-slate-200 placeholder:text-slate-600 focus:border-indigo-300/40 focus-ring"
+              className="w-full resize-none rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-3 text-sm text-ink-2 placeholder:text-ink-4 focus:border-[var(--wtd-accent-line)] focus-ring"
             />
 
             <div className="mt-5 flex items-center justify-between">
-              <span className="text-[11px] text-slate-600">Sent locally · nothing leaves this device</span>
+              <span className="text-[11px] text-ink-4">Sent locally · nothing leaves this device</span>
               <Button variant="primary" loading={sending} onClick={submit} icon={<Send className="size-4" />}>
                 Send
               </Button>

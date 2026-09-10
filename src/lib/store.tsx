@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -16,6 +17,8 @@ export interface Toast {
   title: string;
   message?: string;
 }
+
+export type Theme = "light" | "dark";
 
 interface AppStore {
   page: PageId;
@@ -34,6 +37,9 @@ interface AppStore {
   toasts: Toast[];
   pushToast: (t: Omit<Toast, "id">) => void;
   booting: boolean;
+  /* v2.2 theme */
+  theme: Theme;
+  toggleTheme: () => void;
 }
 
 const StoreContext = createContext<AppStore | null>(null);
@@ -42,6 +48,23 @@ export function useApp(): AppStore {
   const ctx = useContext(StoreContext);
   if (!ctx) throw new Error("useApp must be used inside <AppProvider>");
   return ctx;
+}
+
+const THEME_KEY = "wtd-theme";
+
+function readTheme(): Theme {
+  try {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    /* private mode etc. */
+  }
+  return "light"; // v2.2: light is the default
+}
+
+function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  root.setAttribute("data-theme", theme);
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -53,7 +76,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [booting, setBooting] = useState(true);
+  const [theme, setTheme] = useState<Theme>(readTheme);
   const toastId = useRef(0);
+
+  // apply theme to <html> (and persist)
+  useEffect(() => {
+    applyTheme(theme);
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === "light" ? "dark" : "light"));
+  }, []);
 
   const pushToast = useCallback((t: Omit<Toast, "id">) => {
     const id = ++toastId.current;
@@ -95,24 +133,52 @@ export function AppProvider({ children }: { children: ReactNode }) {
     void api.vaultLock();
   }, []);
 
-  const value: AppStore = {
-    page,
-    navContext,
-    navigate,
-    status,
-    refreshStatus,
-    settings,
-    saveSettings,
-    vaultUnlocked,
-    unlockVault,
-    lockVault,
-    feedbackOpen,
-    openFeedback: () => setFeedbackOpen(true),
-    closeFeedback: () => setFeedbackOpen(false),
-    toasts,
-    pushToast,
-    booting,
-  };
+  const openFeedback = useCallback(() => setFeedbackOpen(true), []);
+  const closeFeedback = useCallback(() => setFeedbackOpen(false), []);
+
+  // memoized: every consumer no longer re-renders on unrelated state changes
+  const value = useMemo<AppStore>(
+    () => ({
+      page,
+      navContext,
+      navigate,
+      status,
+      refreshStatus,
+      settings,
+      saveSettings,
+      vaultUnlocked,
+      unlockVault,
+      lockVault,
+      feedbackOpen,
+      openFeedback,
+      closeFeedback,
+      toasts,
+      pushToast,
+      booting,
+      theme,
+      toggleTheme,
+    }),
+    [
+      page,
+      navContext,
+      navigate,
+      status,
+      refreshStatus,
+      settings,
+      saveSettings,
+      vaultUnlocked,
+      unlockVault,
+      lockVault,
+      feedbackOpen,
+      openFeedback,
+      closeFeedback,
+      toasts,
+      pushToast,
+      booting,
+      theme,
+      toggleTheme,
+    ],
+  );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

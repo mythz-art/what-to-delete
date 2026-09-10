@@ -32,14 +32,14 @@ const TOOL_ICONS: Record<string, typeof FileSearch> = {
 };
 
 const TOOL_TONES: Record<string, string> = {
-  "large-files": "border-indigo-300/25 bg-indigo-400/10 text-indigo-300",
-  "old-downloads": "border-sky-300/25 bg-sky-400/10 text-sky-300",
-  "empty-folders": "border-slate-300/20 bg-white/[0.05] text-slate-300",
-  "browser-caches": "border-cyan-300/25 bg-cyan-400/10 text-cyan-300",
-  "update-cache": "border-blue-300/25 bg-blue-400/10 text-blue-300",
-  "crash-dumps": "border-rose-300/25 bg-rose-400/10 text-rose-300",
-  "app-sizes": "border-violet-300/25 bg-violet-400/10 text-violet-300",
-  "startup-audit": "border-amber-300/25 bg-amber-400/10 text-amber-300",
+  "large-files": "border-[var(--wtd-accent-line)] bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]",
+  "old-downloads": "border-[var(--wtd-cyan-soft)] bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]",
+  "empty-folders": "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] text-ink-2",
+  "browser-caches": "border-[var(--wtd-cyan-soft)] bg-[var(--wtd-cyan-soft)] text-[var(--wtd-cyan)]",
+  "update-cache": "border-[var(--wtd-accent-line)] bg-[var(--wtd-accent-soft)] text-[var(--wtd-accent-ink)]",
+  "crash-dumps": "border-[var(--wtd-bad-soft)] bg-[var(--wtd-bad-soft)] text-[var(--wtd-bad)]",
+  "app-sizes": "border-[var(--wtd-violet-soft)] bg-[var(--wtd-violet-soft)] text-[var(--wtd-violet)]",
+  "startup-audit": "border-[var(--wtd-warn-soft)] bg-[var(--wtd-warn-soft)] text-[var(--wtd-warn)]",
 };
 
 export function ToolsPage() {
@@ -105,7 +105,7 @@ export function ToolsPage() {
                 )}
               </div>
               <div className="mt-4 text-[15px] font-semibold tracking-tight">{tool.name}</div>
-              <p className="mt-1.5 min-h-[36px] text-xs leading-relaxed text-slate-500">
+              <p className="mt-1.5 min-h-[36px] text-xs leading-relaxed text-ink-3">
                 {tool.description}
               </p>
 
@@ -117,14 +117,14 @@ export function ToolsPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="overflow-hidden"
                   >
-                    <div className="mt-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3.5 py-2.5">
+                    <div className="mt-3 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-3.5 py-2.5">
                       <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500">{res.found} results</span>
-                        <span className="font-semibold tabular-nums text-slate-300">
+                        <span className="text-ink-3">{res.found} results</span>
+                        <span className="font-semibold tabular-nums text-ink-2">
                           {formatBytes(res.bytes)}
                         </span>
                       </div>
-                      <div className="mt-1.5 text-[11px] leading-relaxed text-slate-500">{res.note}</div>
+                      <div className="mt-1.5 text-[11px] leading-relaxed text-ink-3">{res.note}</div>
                       <div className="mt-2">
                         <GaugeBar percent={Math.min(100, (res.bytes / (150 * 1024 ** 3)) * 100)} className="h-1" />
                       </div>
@@ -134,7 +134,7 @@ export function ToolsPage() {
               </AnimatePresence>
 
               <div className="mt-auto flex items-center justify-between pt-4">
-                <span className="text-[11px] text-slate-600">
+                <span className="text-[11px] text-ink-4">
                   {res ? "Scan complete" : "Ready to run"}
                 </span>
                 <Button
@@ -163,8 +163,8 @@ export function ToolsPage() {
       </div>
 
       {running && (
-        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-slate-500">
-          <Loader2 className="size-3.5 animate-spin text-indigo-300" />
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-ink-3">
+          <Loader2 className="size-3.5 animate-spin text-[var(--wtd-accent-ink)]" />
           Sweeping your drives with the {tools.find((t) => t.id === running)?.name ?? "tool"}…
         </div>
       )}
@@ -173,10 +173,10 @@ export function ToolsPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="mt-8 flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3"
+        className="mt-8 flex items-center gap-3 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-4 py-3"
       >
-        <ChevronRight className="size-4 text-slate-600" />
-        <p className="text-xs leading-relaxed text-slate-500">
+        <ChevronRight className="size-4 text-ink-4" />
+        <p className="text-xs leading-relaxed text-ink-3">
           Every tool is read-only until you confirm an action. Large-file results can be sent straight to
           Cleanup for safe removal.
         </p>

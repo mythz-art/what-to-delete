@@ -9,6 +9,7 @@ mod logs;
 mod share;
 mod state;
 mod sys;
+mod tasks;
 mod tools;
 mod tunnel;
 mod types;
@@ -76,16 +77,49 @@ fn get_log_buffer(state: tauri::State<AppState>, limit: Option<usize>) -> Vec<Lo
     logs::buffer(&state, limit.unwrap_or(500))
 }
 
+#[tauri::command]
+fn get_tasks(state: tauri::State<AppState>) -> Vec<TaskInfo> {
+    tasks::list(&state)
+}
+
+#[tauri::command]
+fn get_task_buffer(
+    state: tauri::State<AppState>,
+    task_id: String,
+    limit: Option<usize>,
+) -> Vec<LogEntry> {
+    logs::task_buffer(&state, &task_id, limit.unwrap_or(500))
+}
+
 // ------------------------------ junk scan ------------------------------
 
 #[tauri::command]
 async fn scan_start(app: tauri::AppHandle) -> Result<ScanReport, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<AppState>();
-        junk::scan(&app, state.inner())
+    let task_id = tasks::begin(&app, "scan", "Junk Scan");
+    let app2 = app.clone();
+    let tid = task_id.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let state = app2.state::<AppState>();
+        junk::scan(&app2, state.inner(), &tid)
     })
     .await
-    .map_err(|e| format!("scan task failed: {e:?}"))?
+    .map_err(|e| format!("scan task failed: {e:?}"))?;
+    match &result {
+        Ok(report) => tasks::finish(
+            &app,
+            &task_id,
+            "done",
+            &format!(
+                "{} reclaimable · {} files · {:.1}s",
+                tasks::fmt_bytes(report.total_bytes),
+                report.total_files,
+                report.duration_ms as f64 / 1000.0
+            ),
+        ),
+        Err(e) if e == "cancelled" => tasks::finish(&app, &task_id, "cancelled", "cancelled by operator"),
+        Err(e) => tasks::finish(&app, &task_id, "error", &format!("scan failed: {e}")),
+    }
+    result
 }
 
 #[tauri::command]
@@ -95,7 +129,8 @@ fn scan_cancel(state: tauri::State<AppState>) {
 
 #[tauri::command]
 async fn clean_items(app: tauri::AppHandle, ids: Vec<String>) -> Result<FreedResult, String> {
-    logs::info(&app, "SCAN", format!("wipe requested for {} targets", ids.len()));
+    let task_id = tasks::begin(&app, "clean", format!("Wipe {} targets", ids.len()));
+    logs::t_info(&app, &task_id, "CLEAN", format!("wipe requested for {} targets", ids.len()));
     let app2 = app.clone();
     let (paths, sizes): (Vec<String>, Vec<u64>) = {
         let state = app.state::<AppState>();
@@ -125,9 +160,12 @@ async fn clean_items(app: tauri::AppHandle, ids: Vec<String>) -> Result<FreedRes
         .lock()
         .unwrap()
         .use_recycle_bin;
+    logs::t_dim(&app, &task_id, "CLEAN", format!("mode :: {}", if use_recycle { "recycle bin (restorable)" } else { "permanent delete" }));
 
     let app3 = app.clone();
+    let tid2 = task_id.clone();
     let freed = tauri::async_runtime::spawn_blocking(move || {
+        logs::t_info(&app3, &tid2, "CLEAN", "engaging deletion pipeline…");
         junk::delete_paths(&paths, use_recycle);
         let freed: u64 = paths
             .iter()
@@ -146,7 +184,13 @@ async fn clean_items(app: tauri::AppHandle, ids: Vec<String>) -> Result<FreedRes
         state.scan_session.lock().unwrap().retain(|i| !ids.contains(&i.id));
     }
 
-    logs::ok(&app2, "SCAN", format!("wipe complete — {freed} bytes reclaimed"));
+    logs::t_ok(&app2, &task_id, "CLEAN", format!("wipe complete — {} reclaimed", tasks::fmt_bytes(freed)));
+    tasks::finish(
+        &app2,
+        &task_id,
+        "done",
+        &format!("{} reclaimed from {} targets", tasks::fmt_bytes(freed), ids.len()),
+    );
     Ok(FreedResult { freed_bytes: freed })
 }
 
@@ -154,12 +198,29 @@ async fn clean_items(app: tauri::AppHandle, ids: Vec<String>) -> Result<FreedRes
 
 #[tauri::command]
 async fn duplicates_start(app: tauri::AppHandle) -> Result<Vec<DuplicateGroup>, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<AppState>();
-        dedup::find_duplicates(&app, state.inner())
+    let task_id = tasks::begin(&app, "dedup", "Duplicate Hunt");
+    let app2 = app.clone();
+    let tid = task_id.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let state = app2.state::<AppState>();
+        dedup::find_duplicates(&app2, state.inner(), &tid)
     })
     .await
-    .map_err(|e| format!("dedup task failed: {e:?}"))?
+    .map_err(|e| format!("dedup task failed: {e:?}"))?;
+    match &result {
+        Ok(groups) => {
+            let wasted: u64 = groups.iter().map(|g| g.wasted_bytes).sum();
+            tasks::finish(
+                &app,
+                &task_id,
+                "done",
+                &format!("{} groups · {} wasted", groups.len(), tasks::fmt_bytes(wasted)),
+            );
+        }
+        Err(e) if e == "cancelled" => tasks::finish(&app, &task_id, "cancelled", "cancelled by operator"),
+        Err(e) => tasks::finish(&app, &task_id, "error", &format!("dedup failed: {e}")),
+    }
+    result
 }
 
 #[tauri::command]
@@ -169,14 +230,20 @@ fn duplicates_cancel(state: tauri::State<AppState>) {
 
 #[tauri::command]
 async fn remove_duplicates(app: tauri::AppHandle, removed_paths: Vec<String>) -> Result<FreedResult, String> {
+    let task_id = tasks::begin(&app, "clean", format!("Remove {} duplicates", removed_paths.len()));
     let app2 = app.clone();
+    let tid = task_id.clone();
     let paths = removed_paths.clone();
+    logs::t_info(&app, &task_id, "DEDUP", format!("removing {} duplicate files…", paths.len()));
     let freed = tauri::async_runtime::spawn_blocking(move || {
         let mut freed = 0u64;
         for p in &paths {
             let size = std::fs::metadata(p).map(|m| m.len()).unwrap_or(0);
             if junk::delete_path(p, false) {
                 freed += size;
+                logs::t_ok(&app2, &tid, "DEDUP", format!("removed :: {p}"));
+            } else {
+                logs::t_warn(&app2, &tid, "DEDUP", format!("failed to remove :: {p}"));
             }
         }
         freed
@@ -185,7 +252,8 @@ async fn remove_duplicates(app: tauri::AppHandle, removed_paths: Vec<String>) ->
     .map(|freed| FreedResult { freed_bytes: freed })
     .map_err(|e| format!("remove task failed: {e:?}"))?;
     let bytes = freed.freed_bytes;
-    logs::ok(&app2, "DEDUP", format!("duplicates removed — {bytes} bytes"));
+    logs::t_ok(&app, &task_id, "DEDUP", format!("duplicates removed — {} reclaimed", tasks::fmt_bytes(bytes)));
+    tasks::finish(&app, &task_id, "done", &format!("{} reclaimed", tasks::fmt_bytes(bytes)));
     Ok(freed)
 }
 
@@ -198,13 +266,29 @@ fn list_tools() -> Vec<ToolInfo> {
 
 #[tauri::command]
 async fn run_tool(app: tauri::AppHandle, tool_id: String) -> Result<ToolResult, String> {
-    logs::info(&app, "TOOL", format!("executing {tool_id}"));
+    let title = tools::list_tools()
+        .into_iter()
+        .find(|t| t.id == tool_id)
+        .map(|t| t.name)
+        .unwrap_or_else(|| tool_id.clone());
+    let task_id = tasks::begin(&app, "tool", title);
+    logs::t_info(&app, &task_id, "TOOL", format!("executing {tool_id}"));
     let app2 = app.clone();
+    let tid = task_id.clone();
     let id2 = tool_id.clone();
-    let result = tauri::async_runtime::spawn_blocking(move || tools::run_tool(&id2))
-        .await
-        .map_err(|e| format!("tool task failed: {e:?}"))?;
-    logs::ok(&app2, "TOOL", format!("{tool_id} done — {}", result.note));
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        let r = tools::run_tool(&id2);
+        logs::t_ok(&app2, &tid, "TOOL", format!("{} — {} found, {}", id2, r.found, tasks::fmt_bytes(r.bytes)));
+        r
+    })
+    .await
+    .map_err(|e| format!("tool task failed: {e:?}"))?;
+    tasks::finish(
+        &app,
+        &task_id,
+        "done",
+        &format!("{} · {}", result.note, tasks::fmt_bytes(result.bytes)),
+    );
     Ok(result)
 }
 
@@ -254,12 +338,27 @@ fn vault_list(state: tauri::State<AppState>) -> Vec<VaultItem> {
 
 #[tauri::command]
 async fn vault_add(app: tauri::AppHandle, names: Vec<String>) -> Result<Vec<VaultItem>, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<AppState>();
-        vault::vault_add(state.inner(), &names)
+    let task_id = tasks::begin(&app, "vault", format!("Vault import ({} files)", names.len()));
+    let app2 = app.clone();
+    let tid = task_id.clone();
+    let names2 = names.clone();
+    let result = tauri::async_runtime::spawn_blocking(move || {
+        logs::t_dim(&app2, &tid, "VAULT", "encrypting with AES-256-GCM (PBKDF2 120k)…");
+        let state = app2.state::<AppState>();
+        vault::vault_add(state.inner(), &names2)
     })
     .await
-    .map_err(|e| format!("vault add failed: {e:?}"))?
+    .map_err(|e| format!("vault add failed: {e:?}"))?;
+    match &result {
+        Ok(items) => tasks::finish(
+            &app,
+            &task_id,
+            "done",
+            &format!("{} files encrypted into the vault", items.len()),
+        ),
+        Err(e) => tasks::finish(&app, &task_id, "error", &format!("vault import failed: {e}")),
+    }
+    result
 }
 
 #[tauri::command]
@@ -323,8 +422,8 @@ async fn share_ftp_start(app: tauri::AppHandle, cfg: FtpStartConfig) -> Result<s
 }
 
 #[tauri::command]
-fn share_ftp_stop(state: tauri::State<AppState>) {
-    ftp::ftp_stop(&state);
+fn share_ftp_stop(app: tauri::AppHandle, state: tauri::State<AppState>) {
+    ftp::ftp_stop(&app, state.inner());
 }
 
 #[tauri::command]
@@ -370,9 +469,17 @@ async fn transfer_start(
     app: tauri::AppHandle,
     items: Vec<share::IncomingItem>,
 ) -> Result<(), String> {
+    let n = items.len();
+    let task_id = tasks::begin(&app, "transfer", format!("Share transfer ({n} items)"));
+    for it in &items {
+        logs::t_dim(&app, &task_id, "NET", format!("queue :: {} — {} via {}", it.name, tasks::fmt_bytes(it.bytes), it.mode));
+    }
+    let app2 = app.clone();
+    let tid = task_id.clone();
     tauri::async_runtime::spawn_blocking(move || {
-        let state = app.state::<AppState>();
-        share::transfer_start(&app, state.inner(), items);
+        let state = app2.state::<AppState>();
+        share::transfer_start(&app2, state.inner(), items);
+        tasks::finish(&app2, &tid, "done", &format!("{n} transfers queued"));
     })
     .await
     .map_err(|e| format!("transfer start failed: {e:?}"))
@@ -499,6 +606,8 @@ fn main() {
             get_settings,
             save_settings,
             get_log_buffer,
+            get_tasks,
+            get_task_buffer,
             scan_start,
             scan_cancel,
             clean_items,
@@ -541,7 +650,8 @@ fn main() {
             finder_installed_apps
         ])
         .setup(|app| {
-            logs::info(app.handle(), "APP", "What to Delete? v2.1.0 — kernel online");
+            logs::info(app.handle(), "APP", "What to Delete? v2.2.0 — kernel online");
+            logs::dim(app.handle(), "APP", "multi-task terminal online — per-task log channels active");
             logs::dim(app.handle(), "APP", "single-exe mode: WebView2 loader statically linked");
             logs::dim(app.handle(), "SYS", format!("host: {}", sys::computer_name()));
             Ok(())

@@ -93,14 +93,17 @@ struct HashJob {
     partial: Option<[u8; 32]>,
 }
 
-pub fn find_duplicates(app: &tauri::AppHandle, state: &AppState) -> Result<Vec<DuplicateGroup>, String> {
+pub fn find_duplicates(app: &tauri::AppHandle, state: &AppState, task_id: &str) -> Result<Vec<DuplicateGroup>, String> {
     use crate::logs;
     let started = std::time::Instant::now();
     state.dup_cancel.store(false, Ordering::Relaxed);
-    logs::info(app, "DEDUP", "content-aware duplicate hunt initiated");
+    logs::t_info(app, task_id, "DEDUP", "content-aware duplicate hunt initiated");
 
     let roots = scan_roots();
-    logs::dim(app, "DEDUP", format!("roots: {}", roots.len()));
+    for r in &roots {
+        logs::t_dim(app, task_id, "DEDUP", format!("root locked :: {}", r.display()));
+    }
+    logs::t_info(app, task_id, "DEDUP", format!("pass 1 — size index over {} roots (files >= 1 MB)", roots.len()));
 
     // pass 1: collect files >= 1MB grouped by size
     let mut by_size: HashMap<u64, Vec<PathBuf>> = HashMap::new();
@@ -111,11 +114,11 @@ pub fn find_duplicates(app: &tauri::AppHandle, state: &AppState) -> Result<Vec<D
     let mut stack: Vec<PathBuf> = roots;
     while let Some(dir) = stack.pop() {
         if state.dup_cancel.load(Ordering::Relaxed) {
-            logs::warn(app, "DEDUP", "cancelled by operator");
+            logs::t_warn(app, task_id, "DEDUP", "cancelled by operator");
             return Err("cancelled".into());
         }
         if started.elapsed().as_millis() > TIME_BUDGET_MS {
-            logs::warn(app, "DEDUP", "time budget reached — returning partial results");
+            logs::t_warn(app, task_id, "DEDUP", "time budget reached — returning partial results");
             break;
         }
         match fs::read_dir(&dir) {
@@ -180,11 +183,20 @@ pub fn find_duplicates(app: &tauri::AppHandle, state: &AppState) -> Result<Vec<D
         .filter(|(_, v)| v.len() > 1)
         .collect();
     let cand_count: u64 = candidates.iter().map(|(_, v)| v.len() as u64).sum();
-    logs::dim(
+    logs::t_info(
         app,
+        task_id,
         "DEDUP",
-        format!("{} candidate files in {} size groups", cand_count, candidates.len()),
+        format!(
+            "pass 1 done :: {} entries walked, {} candidate files in {} size groups",
+            processed, cand_count, candidates.len()
+        ),
     );
+    if candidates.is_empty() {
+        logs::t_ok(app, task_id, "DEDUP", "no size collisions — nothing to hash, drive is clean");
+        return Ok(Vec::new());
+    }
+    logs::t_info(app, task_id, "DEDUP", "pass 2 — parallel partial hashing (64KB head + mid + tail samples)");
 
     // pass 2: parallel partial hashes (rayon) over candidates
     let mut groups: Vec<DuplicateGroup> = Vec::new();
@@ -303,18 +315,53 @@ pub fn find_duplicates(app: &tauri::AppHandle, state: &AppState) -> Result<Vec<D
     groups.sort_by(|a, b| b.wasted_bytes.cmp(&a.wasted_bytes));
     groups.truncate(40);
     let wasted: u64 = groups.iter().map(|g| g.wasted_bytes).sum();
-    logs::ok(
+
+    // detailed result block for the task log
+    for (i, g) in groups.iter().take(5).enumerate() {
+        if let Some(first) = g.files.first() {
+            logs::t_dim(
+                app,
+                task_id,
+                "DEDUP",
+                format!(
+                    "group {} :: {} copies · {} wasted · {}",
+                    i + 1,
+                    g.files.len(),
+                    fmt_bytes(g.wasted_bytes),
+                    first.path
+                ),
+            );
+        }
+    }
+    logs::t_ok(
         app,
+        task_id,
         "DEDUP",
         format!(
-            "hunt complete :: {} groups, {} bytes wasted, {} cache hits, {} ms",
+            "hunt complete :: {} groups, {} wasted, {} partial hashes, {} cache hits, {:.1}s",
             groups.len(),
-            wasted,
+            fmt_bytes(wasted),
+            hashed,
             cache_hits,
-            started.elapsed().as_millis()
+            started.elapsed().as_millis() as f64 / 1000.0
         ),
     );
     Ok(groups)
+}
+
+fn fmt_bytes(n: u64) -> String {
+    const UNITS: [&str; 5] = ["B", "KB", "MB", "GB", "TB"];
+    let mut val = n as f64;
+    let mut unit = 0usize;
+    while val >= 1024.0 && unit < UNITS.len() - 1 {
+        val /= 1024.0;
+        unit += 1;
+    }
+    if unit == 0 {
+        format!("{n} B")
+    } else {
+        format!("{val:.1} {}", UNITS[unit])
+    }
 }
 
 fn fnv1a(s: &str) -> u64 {

@@ -36,21 +36,21 @@ import { Button, EmptyState, Modal } from "@/components/ui";
 /* ------------------------------ file icons ------------------------------ */
 
 function iconFor(entry: FileEntry, size = "size-9") {
-  if (entry.isDir) return <Folder className={`${size} text-amber-300/90`} />;
+  if (entry.isDir) return <Folder className={`${size} text-[var(--wtd-warn)]/90`} />;
   const name = entry.name.toLowerCase();
   if (/\.(png|jpe?g|gif|webp|svg|bmp|ico|heic)$/.test(name))
-    return <ImageIcon className={`${size} text-fuchsia-300/80`} />;
+    return <ImageIcon className={`${size} text-[var(--wtd-fuchsia)]/80`} />;
   if (/\.(mp4|mkv|avi|mov|webm|flv|wmv)$/.test(name))
-    return <Film className={`${size} text-rose-300/80`} />;
+    return <Film className={`${size} text-[var(--wtd-bad)]/80`} />;
   if (/\.(mp3|wav|flac|ogg|m4a|wma)$/.test(name))
-    return <Music className={`${size} text-sky-300/80`} />;
+    return <Music className={`${size} text-[var(--wtd-cyan)]/80`} />;
   if (/\.(zip|rar|7z|tar|gz|iso|cab)$/.test(name))
-    return <Archive className={`${size} text-lime-300/80`} />;
+    return <Archive className={`${size} text-[var(--wtd-ok)]/80`} />;
   if (/\.(js|ts|tsx|jsx|py|rs|c|cpp|cs|java|html|css|json|xml|yml|yaml|sh|ps1|bat)$/.test(name))
-    return <FileCode2 className={`${size} text-emerald-300/80`} />;
+    return <FileCode2 className={`${size} text-[var(--wtd-ok)]/80`} />;
   if (/\.(txt|md|pdf|docx?|xlsx?|pptx?|csv|log|ini|cfg)$/.test(name))
-    return <FileText className={`${size} text-slate-300/80`} />;
-  return <File className={`${size} text-slate-400/70`} />;
+    return <FileText className={`${size} text-ink-2/80`} />;
+  return <File className={`${size} text-ink-3/70`} />;
 }
 
 type SortMode = "name" | "size" | "modified";
@@ -272,57 +272,57 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
     <div className="flex min-h-0 flex-col gap-3" onClick={() => setRenaming(null)}>
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
-          <button onClick={back} disabled={history.length === 0} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200 disabled:opacity-30" title="Back">
+        <div className="flex items-center gap-0.5 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-1">
+          <button onClick={back} disabled={history.length === 0} className="rounded-lg p-2 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2 disabled:opacity-30" title="Back">
             <ArrowLeft className="size-4" />
           </button>
-          <button onClick={forward} disabled={future.length === 0} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200 disabled:opacity-30" title="Forward">
+          <button onClick={forward} disabled={future.length === 0} className="rounded-lg p-2 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2 disabled:opacity-30" title="Forward">
             <ArrowRight className="size-4" />
           </button>
-          <button onClick={up} disabled={!listing?.parent} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200 disabled:opacity-30" title="Up">
+          <button onClick={up} disabled={!listing?.parent} className="rounded-lg p-2 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2 disabled:opacity-30" title="Up">
             <ArrowUp className="size-4" />
           </button>
-          <button onClick={() => navigate(path ?? null, false)} disabled={!path} className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-slate-200 disabled:opacity-30" title="Refresh">
+          <button onClick={() => navigate(path ?? null, false)} disabled={!path} className="rounded-lg p-2 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2 disabled:opacity-30" title="Refresh">
             <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
 
         {/* breadcrumbs */}
-        <div className="flex min-w-[180px] flex-1 items-center gap-1 overflow-x-auto scroll-thin rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
-          <button onClick={() => navigate(null)} className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white" title="This PC">
+        <div className="flex min-w-[180px] flex-1 items-center gap-1 overflow-x-auto scroll-thin rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-3 py-2">
+          <button onClick={() => navigate(null)} className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-ink-2 hover:text-ink" title="This PC">
             <HardDrive className="size-3.5" />
             PC
           </button>
           {crumbs.map((c, i) => (
             <span key={c.path + i} className="flex shrink-0 items-center gap-1">
-              <ChevronRight className="size-3 text-slate-600" />
+              <ChevronRight className="size-3 text-ink-4" />
               <button
                 onClick={() => navigate(c.path)}
-                className={`text-xs font-medium ${i === crumbs.length - 1 ? "text-white" : "text-slate-400 hover:text-slate-200"}`}
+                className={`text-xs font-medium ${i === crumbs.length - 1 ? "text-ink font-semibold" : "text-ink-3 hover:text-ink-2"}`}
               >
                 {c.name}
               </button>
             </span>
           ))}
-          {showRoots && <span className="ml-2 text-xs text-slate-500">quick access</span>}
+          {showRoots && <span className="ml-2 text-xs text-ink-3">quick access</span>}
         </div>
 
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
-          <Search className="size-3.5 text-slate-500" />
+        <div className="flex items-center gap-2 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-3 py-2">
+          <Search className="size-3.5 text-ink-3" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={path ? "Search this folder…" : "Open a drive first"}
             disabled={!path}
-            className="w-28 bg-transparent text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:w-44 transition-all sm:w-36 sm:focus:w-56"
+            className="w-28 bg-transparent text-xs text-ink-2 placeholder:text-ink-4 focus:outline-none focus:w-44 transition-all sm:w-36 sm:focus:w-56"
           />
         </div>
 
-        <div className="flex items-center gap-0.5 rounded-xl border border-white/10 bg-white/[0.04] p-1">
-          <button onClick={() => setView("grid")} className={`rounded-lg p-2 transition-colors ${view === "grid" ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200"}`} title="Grid view">
+        <div className="flex items-center gap-0.5 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-1">
+          <button onClick={() => setView("grid")} className={`rounded-lg p-2 transition-colors ${view === "grid" ? "bg-[var(--wtd-accent-soft)] text-ink" : "text-ink-3 hover:text-ink-2"}`} title="Grid view">
             <LayoutGrid className="size-4" />
           </button>
-          <button onClick={() => setView("list")} className={`rounded-lg p-2 transition-colors ${view === "list" ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200"}`} title="List view">
+          <button onClick={() => setView("list")} className={`rounded-lg p-2 transition-colors ${view === "list" ? "bg-[var(--wtd-accent-soft)] text-ink" : "text-ink-3 hover:text-ink-2"}`} title="List view">
             <List className="size-4" />
           </button>
         </div>
@@ -330,7 +330,7 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortMode)}
-          className="rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-2 text-xs text-slate-300 focus:outline-none"
+          className="rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] px-2.5 py-2 text-xs text-ink-2 focus:outline-none"
           title="Sort"
         >
           <option value="name">Name</option>
@@ -374,10 +374,10 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
       </div>
 
       {/* content */}
-      <div className="relative min-h-[340px] flex-1 overflow-y-auto scroll-thin rounded-2xl border border-white/[0.07] bg-black/20 p-3">
+      <div className="relative min-h-[340px] flex-1 overflow-y-auto scroll-thin rounded-2xl border border-[var(--wtd-edge)] bg-black/20 p-3">
         {loading && (
-          <div className="absolute inset-0 z-10 grid place-items-center bg-slate-950/40 backdrop-blur-[2px]">
-            <Loader2 className="size-6 animate-spin text-indigo-300" />
+          <div className="absolute inset-0 z-10 grid place-items-center bg-app/40 backdrop-blur-[2px]">
+            <Loader2 className="size-6 animate-spin text-[var(--wtd-accent-ink)]" />
           </div>
         )}
 
@@ -389,12 +389,12 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 onClick={() => navigate(r.path)}
-                className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.03] p-4 text-left transition-all hover:border-indigo-300/30 hover:bg-indigo-400/10"
+                className="flex items-center gap-3 rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] p-4 text-left transition-all hover:border-[var(--wtd-accent-line)] hover:bg-[var(--wtd-accent-soft)]"
               >
                 {iconFor(r, "size-10")}
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium text-slate-200">{r.name}</div>
-                  <div className="truncate text-[11px] text-slate-500">{r.path}</div>
+                  <div className="truncate text-sm font-medium text-ink-2">{r.name}</div>
+                  <div className="truncate text-[11px] text-ink-3">{r.path}</div>
                 </div>
               </motion.button>
             ))}
@@ -432,22 +432,22 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
         )}
 
         {listing?.truncated && (
-          <div className="mt-3 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-[11px] text-amber-300">
+          <div className="mt-3 rounded-lg border border-[var(--wtd-warn-soft)] bg-[var(--wtd-warn-soft)] px-3 py-2 text-[11px] text-[var(--wtd-warn)]">
             Large folder — showing first {listing.entries.length} of {listing.total} entries. Use search to find specific items.
           </div>
         )}
       </div>
 
       {/* status bar */}
-      <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+      <div className="flex flex-wrap items-center gap-3 text-[11px] text-ink-3">
         <span>{entries.length} items</span>
         {selectedEntries.length > 0 && (
           <>
-            <span className="text-slate-400">· {selectedEntries.length} selected</span>
-            <span className="text-slate-400">· {formatBytes(selectedEntries.reduce((s, e) => s + e.bytes, 0))}</span>
+            <span className="text-ink-3">· {selectedEntries.length} selected</span>
+            <span className="text-ink-3">· {formatBytes(selectedEntries.reduce((s, e) => s + e.bytes, 0))}</span>
           </>
         )}
-        {searchResults && <span className="text-indigo-300">· search results for "{search}"</span>}
+        {searchResults && <span className="text-[var(--wtd-accent-ink)]">· search results for "{search}"</span>}
       </div>
 
       {/* context menu */}
@@ -459,7 +459,7 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.12 }}
             style={{ left: menu.x, top: menu.y }}
-            className="fixed z-50 w-48 overflow-hidden rounded-xl border border-white/10 bg-slate-900/95 py-1 shadow-2xl backdrop-blur"
+            className="fixed z-50 w-48 overflow-hidden rounded-xl border border-[var(--wtd-edge)] bg-[var(--wtd-card)]/95 py-1 shadow-2xl backdrop-blur"
             onClick={(e) => e.stopPropagation()}
           >
             {[
@@ -475,9 +475,9 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
                   item.fn();
                   setMenu(null);
                 }}
-                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-slate-300 transition-colors hover:bg-white/10 hover:text-white"
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs text-ink-2 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink"
               >
-                <item.icon className="size-3.5 text-slate-500" />
+                <item.icon className="size-3.5 text-ink-3" />
                 {item.label}
               </button>
             ))}
@@ -487,7 +487,7 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
                 setMenu(null);
                 setTimeout(doDelete, 30);
               }}
-              className="flex w-full items-center gap-2.5 border-t border-white/10 px-3 py-2 text-left text-xs text-rose-300 transition-colors hover:bg-rose-500/15"
+              className="flex w-full items-center gap-2.5 border-t border-[var(--wtd-edge)] px-3 py-2 text-left text-xs text-[var(--wtd-bad)] transition-colors hover:bg-[var(--wtd-bad-soft)]"
             >
               <Trash2 className="size-3.5" />
               Delete
@@ -503,11 +503,11 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
             <div className="mb-4 flex items-center gap-3">
               {iconFor({ ...propsItem, isDir: propsItem.isDir, name: propsItem.name, path: propsItem.path, bytes: propsItem.bytes, modified: propsItem.modified, hidden: false, readonly: false }, "size-11")}
               <div className="min-w-0">
-                <div className="truncate text-base font-semibold text-slate-100">{propsItem.name}</div>
-                <div className="truncate text-[11px] text-slate-500">{propsItem.path}</div>
+                <div className="truncate text-base font-semibold text-ink">{propsItem.name}</div>
+                <div className="truncate text-[11px] text-ink-3">{propsItem.path}</div>
               </div>
             </div>
-            <div className="space-y-2 rounded-xl border border-white/[0.07] bg-black/20 p-4 text-xs">
+            <div className="space-y-2 rounded-xl border border-[var(--wtd-edge)] bg-black/20 p-4 text-xs">
               {[
                 ["Type", propsItem.isDir ? "Folder" : "File"],
                 ["Size", formatBytes(propsItem.bytes, 2)],
@@ -522,8 +522,8 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
                 ["Read-only", propsItem.readonly ? "Yes" : "No"],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4">
-                  <span className="text-slate-500">{k}</span>
-                  <span className="text-right text-slate-200">{v}</span>
+                  <span className="text-ink-3">{k}</span>
+                  <span className="text-right text-ink-2">{v}</span>
                 </div>
               ))}
             </div>
@@ -540,6 +540,39 @@ export function FileExplorer({ initialPath }: { initialPath?: string }) {
 }
 
 /* ------------------------------ rows / cells ------------------------------ */
+
+/**
+ * v2.2 perf: windowed rendering for huge directories — renders the first
+ * chunk and grows via an IntersectionObserver sentinel. Keeps the DOM small
+ * so scrolling stays smooth even with thousands of entries.
+ */
+function useWindowedEntries(entries: FileEntry[], chunk = 140) {
+  const [visibleCount, setVisibleCount] = useState(chunk);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(chunk);
+  }, [entries, chunk]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (es) => {
+        if (es[0]?.isIntersecting) {
+          setVisibleCount((c) => Math.min(c + chunk, entries.length));
+        }
+      },
+      { rootMargin: "600px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [entries.length, chunk]);
+
+  const visible = entries.slice(0, visibleCount);
+  const hasMore = visibleCount < entries.length;
+  return { visible, hasMore, sentinelRef, hidden: entries.length - visibleCount };
+}
 
 function FileRows({
   entries,
@@ -566,10 +599,11 @@ function FileRows({
   onMenu: (x: number, y: number, e: FileEntry) => void;
   searchMode?: boolean;
 }) {
+  const { visible, hasMore, sentinelRef, hidden } = useWindowedEntries(entries);
   if (view === "grid") {
     return (
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
-        {entries.map((e) => {
+        {visible.map((e) => {
           const isSel = selected.has(e.path);
           return (
             <motion.button
@@ -588,8 +622,8 @@ function FileRows({
               }}
               className={`group flex flex-col items-center gap-1.5 rounded-xl border p-3 transition-all ${
                 isSel
-                  ? "border-indigo-300/50 bg-indigo-400/15"
-                  : "border-white/[0.05] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.06]"
+                  ? "border-indigo-300/50 bg-[var(--wtd-accent-soft)]"
+                  : "border-[var(--wtd-edge)] bg-[var(--wtd-card-2)] hover:border-[var(--wtd-edge-2)] hover:bg-[var(--wtd-card-2)]"
               } ${e.hidden ? "opacity-50" : ""}`}
               title={e.path}
             >
@@ -605,30 +639,35 @@ function FileRows({
                   onBlur={onRenameSubmit}
                   onKeyDown={(ev) => ev.key === "Enter" && onRenameSubmit()}
                   onClick={(ev) => ev.stopPropagation()}
-                  className="w-full rounded bg-black/50 px-1 text-center text-[11px] text-white focus:outline-none"
+                  className="input w-full px-1 text-center text-[11px] focus:outline-none"
                 />
               ) : (
-                <span className="w-full truncate text-center text-[11px] font-medium text-slate-300">{e.name}</span>
+                <span className="w-full truncate text-center text-[11px] font-medium text-ink-2">{e.name}</span>
               )}
               {!e.isDir && e.bytes > 0 && (
-                <span className="text-[10px] tabular-nums text-slate-600">{formatBytes(e.bytes, 0)}</span>
+                <span className="text-[10px] tabular-nums text-ink-4">{formatBytes(e.bytes, 0)}</span>
               )}
             </motion.button>
           );
         })}
+        {hasMore && (
+          <div ref={sentinelRef} className="col-span-full py-6 text-center text-[11px] text-ink-4">
+            loading {hidden} more…
+          </div>
+        )}
       </div>
     );
   }
 
   return (
     <div className="flex flex-col">
-      <div className="sticky top-0 z-10 mb-1 grid grid-cols-[minmax(0,1fr)_90px_120px_90px] gap-2 border-b border-white/[0.07] bg-slate-950/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500 backdrop-blur">
+      <div className="sticky top-0 z-10 mb-1 grid grid-cols-[minmax(0,1fr)_90px_120px_90px] gap-2 border-b border-[var(--wtd-edge)] bg-app/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-ink-3 backdrop-blur">
         <span>Name</span>
         <span className="text-right">Size</span>
         <span className="text-right">Modified</span>
         <span className="text-right">Actions</span>
       </div>
-      {entries.map((e) => {
+      {visible.map((e) => {
         const isSel = selected.has(e.path);
         return (
           <div
@@ -640,7 +679,7 @@ function FileRows({
               onMenu(ev.clientX, ev.clientY, e);
             }}
             className={`grid cursor-default grid-cols-[minmax(0,1fr)_90px_120px_90px] items-center gap-2 rounded-lg px-3 py-2 transition-colors ${
-              isSel ? "bg-indigo-400/15" : "hover:bg-white/[0.04]"
+              isSel ? "bg-[var(--wtd-accent-soft)]" : "hover:bg-[var(--wtd-card-2)]"
             } ${e.hidden ? "opacity-50" : ""}`}
           >
             <div className="flex min-w-0 items-center gap-2.5">
@@ -652,23 +691,23 @@ function FileRows({
                   onChange={(ev) => setRenameValue(ev.target.value)}
                   onBlur={onRenameSubmit}
                   onKeyDown={(ev) => ev.key === "Enter" && onRenameSubmit()}
-                  className="min-w-0 flex-1 rounded bg-black/50 px-2 py-0.5 text-xs text-white focus:outline-none"
+                  className="input min-w-0 flex-1 px-2 py-0.5 text-xs focus:outline-none"
                 />
               ) : (
-                <span className="truncate text-xs font-medium text-slate-300">{e.name}</span>
+                <span className="truncate text-xs font-medium text-ink-2">{e.name}</span>
               )}
-              {searchMode && <span className="hidden max-w-[40%] truncate text-[10px] text-slate-600 lg:block">{e.path}</span>}
-              {e.readonly && <span className="shrink-0 rounded border border-amber-400/30 px-1 text-[9px] text-amber-300">RO</span>}
+              {searchMode && <span className="hidden max-w-[40%] truncate text-[10px] text-ink-4 lg:block">{e.path}</span>}
+              {e.readonly && <span className="shrink-0 rounded border border-[var(--wtd-warn-soft)] px-1 text-[9px] text-[var(--wtd-warn)]">RO</span>}
             </div>
-            <span className="text-right text-[11px] tabular-nums text-slate-500">{e.isDir ? "—" : formatBytes(e.bytes)}</span>
-            <span className="text-right text-[11px] tabular-nums text-slate-500">{e.modified ? formatDate(e.modified) : "—"}</span>
+            <span className="text-right text-[11px] tabular-nums text-ink-3">{e.isDir ? "—" : formatBytes(e.bytes)}</span>
+            <span className="text-right text-[11px] tabular-nums text-ink-3">{e.modified ? formatDate(e.modified) : "—"}</span>
             <div className="flex justify-end gap-1">
               <button
                 onClick={(ev) => {
                   ev.stopPropagation();
                   onOpen(e);
                 }}
-                className="rounded p-1.5 text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-200"
+                className="rounded p-1.5 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2"
                 title="Open"
               >
                 <ExternalLink className="size-3.5" />
@@ -678,7 +717,7 @@ function FileRows({
                   ev.stopPropagation();
                   onMenu(ev.clientX, ev.clientY, e);
                 }}
-                className="rounded p-1.5 text-slate-500 transition-colors hover:bg-white/10 hover:text-slate-200"
+                className="rounded p-1.5 text-ink-3 transition-colors hover:bg-[var(--wtd-card-3)] hover:text-ink-2"
                 title="More"
               >
                 <Pencil className="size-3.5" />
@@ -687,6 +726,11 @@ function FileRows({
           </div>
         );
       })}
+      {hasMore && (
+        <div ref={sentinelRef} className="py-6 text-center text-[11px] text-ink-4">
+          loading {hidden} more entries…
+        </div>
+      )}
     </div>
   );
 }
